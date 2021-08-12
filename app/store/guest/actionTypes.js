@@ -1,0 +1,1 @@
+export const SET_GUEST_PROFILE = "SET_GUEST_PROFILE"

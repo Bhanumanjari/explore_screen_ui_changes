@@ -1,0 +1,5 @@
+const TAG = 'LOGIN_'
+export const UPDATE_ACCESS_TOKEN = TAG + 'UPDATE_ACCESS_TOKEN';
+export const API_LOADING_START = TAG + 'API_LOADING_START';
+export const API_LOADING_STOP = TAG + 'API_LOADING_STOP';
+export const SET_PROFILE = TAG + 'SET_PROFILE';
