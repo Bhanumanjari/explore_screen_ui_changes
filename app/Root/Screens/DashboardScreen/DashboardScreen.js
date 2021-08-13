@@ -48,6 +48,7 @@ import PhotoClick from '../PhotoClickScreen/PhotoClick';
 import ProfileDetailsScreen from '../ProfileDetailsScreen/ProfileDetailsScreen';
 import { useDebouncedCallback } from 'use-debounce';
 import Feedback from '../FeedbackScreen/Feedback';
+import SwapVideoLoader from '../VideoDetailsScreen/SwapVideoLoader';
 
 const Tab = createMaterialTopTabNavigator();
 // const BottomTab = createMaterialTopTabNavigator();
@@ -338,7 +339,7 @@ const ProfileTabBottom = (props) => {
 
 export const DashboardTab = (props) => {
   const authContext = useContext(AuthContext)
-  console.log("::::=>>>", authContext)
+  // console.log("::::=>>>", authContext)
   return (
     <Stack.Navigator
       initialRouteName={authContext?.initialRouteName ?? undefined}
@@ -392,6 +393,9 @@ export const DashboardTab = (props) => {
       }} component={PhotoClick} />
       <Stack.Screen name="ProfileDetailsScreen" component={ProfileDetailsScreen} />
       <Stack.Screen name="FeedbackScreen" component={Feedback} />
+      <Stack.Screen name="SwapVideoLoaderScreen" component={SwapVideoLoader} options={{
+        gestureEnabled: false
+      }} />
     </Stack.Navigator>
   );
 };

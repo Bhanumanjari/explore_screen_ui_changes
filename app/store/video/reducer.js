@@ -5,10 +5,12 @@ import {
   SAVE_REQUEST_SENT_VIDEO,
   SAVE_SAVED_VIDEO,
   SAVE_SWAPE_VIDEO_DATA,
+  SAVE_VIDEO_WALL_DATA,
   SET_EXPLORE_VIDEO_LOADER,
   SET_LIKE_VIDEO_LOADER,
   SET_REQUEST_RECEIVED_LOADER,
   SET_REQUEST_SENT_LOADER,
+  SET_REQUEST_VIDEO_WALL,
   SET_SAVE_VIDEO_LOADER,
 } from './actionTypes';
 
@@ -18,6 +20,7 @@ let initialState = {
   requestSentVideo: {},
   requestRecievedVideo: {},
   exploreVideoList: [],
+  videoWallList: [],
   isLikeVideoLoading: false,
   isSaveVideoLoading: false,
   isExploreVideoLoading: false,
@@ -82,6 +85,16 @@ const video = (state = initialState, action) => {
       return {
         ...state,
         swapedVideoData: action.payload,
+      };
+    case SET_REQUEST_VIDEO_WALL:
+      return {
+        ...state,
+        // isRequestReceivedVideoLoading: action.payload,
+      };
+    case SAVE_VIDEO_WALL_DATA:
+      return {
+        ...state,
+        videoWallList: action.payload,
       };
     default:
       return state;

@@ -13,6 +13,7 @@ import { apiLoadingStart, apiLoadingStop } from '../../../store/global/actions';
 import { bindActionCreators } from 'redux';
 import FastImage from 'react-native-fast-image';
 import CountryCodeModal from '../../../Component/CountryCodeModal';
+import CountryPicker from 'react-native-country-picker-modal'
 
 class ForgotPasswordScreen extends Component {
     constructor(props) {
@@ -22,7 +23,8 @@ class ForgotPasswordScreen extends Component {
     state = {
         phoneNumber: "",
         showCountryCodeModal: false,
-        countryCode: "+91"
+        countryCode: "+91",
+        countryFlag: "IN"
     }
 
     getOtp = () => {
@@ -51,6 +53,13 @@ class ForgotPasswordScreen extends Component {
         })
     }
 
+    onSelect = (country) => {
+        this.setState({
+            countryFlag: country.cca2,
+            countryCode: "+" + country.callingCode[0]
+        })
+    }
+
     render() {
         return (
             <Container>
@@ -66,12 +75,18 @@ class ForgotPasswordScreen extends Component {
                         <TextView style={styles.subTxt1}>We will send OTP to change your Password.</TextView>
                         <View style={styles.inputCont}>
                             <View style={styles.inputTxtCont}>
-                                <Pressable style={{ marginLeft: 20, margin: 10 }} onPress={() => {
-                                    this.setState({
-                                        showCountryCodeModal: true
-                                    })
-                                }}>
-                                    <TextView style={{ color: "white" }}>{this.state.countryCode}</TextView>
+                                <Pressable style={{ marginLeft: 20, margin: 10 }} >
+                                    {/* <TextView style={{ color: "white" }}>{this.state.countryFlag}</TextView> */}
+                                    <CountryPicker
+                                    {...{
+                                        countryCode: this.state.countryFlag,
+                                        withFilter: true,
+                                        withFlag: true,
+                                        withCountryNameButton: false,
+                                        withCallingCode: true,
+                                        onSelect: this.onSelect,
+                                    }}
+                                />
                                 </Pressable>
                                 {/* <FastImage source={phone}
                                     resizeMode={FastImage.resizeMode.contain}
@@ -100,17 +115,18 @@ class ForgotPasswordScreen extends Component {
 
                     </View>
                 </View>
-                <CountryCodeModal visible={this.state.showCountryCodeModal} toggle={() => {
+                {/* <CountryCodeModal visible={this.state.showCountryCodeModal} toggle={() => {
                     this.setState({
                         showCountryCodeModal: !this.state.showCountryCodeModal
                     })
                 }}
-                    onSelectCountryCode={(countryCode) => {
+                    onSelectCountryCode={(country) => {
                         this.setState({
-                            countryCode
+                            countryCode: country.code,
+                            countryFlag: country.flag
                         })
                     }}
-                />
+                /> */}
             </Container>
         );
     }

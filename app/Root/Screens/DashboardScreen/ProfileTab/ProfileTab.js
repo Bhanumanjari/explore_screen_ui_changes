@@ -481,6 +481,9 @@ class ProfileTab extends Component {
               }
               <FlatList
                 data={this.props.myHellos}
+                windowSize={11}
+                initialNumToRender={7}
+                removeClippedSubviews={true}
                 scrollEnabled={false}
                 contentContainerStyle={styles.listContainer}
                 numColumns={2}

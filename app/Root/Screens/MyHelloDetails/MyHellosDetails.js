@@ -128,6 +128,7 @@ const MyHellosDetails = (props) => {
                     showsHorizontalScrollIndicator={false}
                     onMomentumScrollEnd={onScrollEnd}
                     initialNumToRender={1}
+                    windowSize={3}
                     snapToAlignment="start"
                     decelerationRate='fast'
                     viewabilityConfig={viewabilityConfig.current}

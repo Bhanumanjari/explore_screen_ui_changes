@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     inputTxt: {
         flex: 1,
         margin: 5,
-        marginLeft: 20,
+        marginLeft: 12,
         fontFamily: font.MontserratRegular,
         //backgroundColor:'#FFF',
         fontSize: 16,
@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
     },
     bottom: {
 
-        bottom: 0,
-        position: 'absolute',
+        // bottom: 0,
+        // position: 'absolute',
         width: '100%',
         backgroundColor: '#20292D',
         padding: 20,

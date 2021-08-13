@@ -78,6 +78,7 @@ import splashBottomLayer from './splash_bottom_layer.png';
 import smileLoader from './Round-smilee-loader.gif';
 import socialShare from './social-share.png';
 import downloadIcon from './download.png';
+import swapLoader from './swap-loader.gif';
 
 export {
   lock,
@@ -159,5 +160,6 @@ export {
   splashBottomLayer,
   smileLoader,
   socialShare,
-  downloadIcon
+  downloadIcon,
+  swapLoader
 };

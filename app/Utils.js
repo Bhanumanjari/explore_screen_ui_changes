@@ -4,7 +4,7 @@ import { downloadFile } from "react-native-fs";
 import ImagePicker, { ImagePickerOptions, launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import RNToast from 'react-native-simple-toast';
-import { requestStoragePermission } from "./Config/permissions";
+import { requestCameraPermission, requestStoragePermission } from "./Config/permissions";
 
 export const deviceHeight = Dimensions.get('window').height;
 export const deviceWidth = Dimensions.get('window').width;
@@ -143,22 +143,25 @@ export const downloadFileFromUrl = (options) => {
   })
 }
 
-export const pickFromCamera = (callBack, option) => {
-  launchCamera({...option}, (response) => {
-    console.log('Response = ', response);
-
-    if (response.didCancel) {
-      // console.log('User cancelled image picker');
-    } else if (response.errorCode) {
-      console.log('ImagePicker Error: ', response.errorMessage);
-      // callBack(response.error)
-    } else if (response.customButton) {
-      console.log('User tapped custom button: ', response.customButton);
-      // callBack(response.customButton)
-    } else {
-      callBack(response)
-    }
-  })
+export const pickFromCamera = async (callBack, option) => {
+  const isPermission = await requestCameraPermission()
+  if(isPermission){
+    launchCamera({...option}, (response) => {
+      console.log('Response = ', response);
+  
+      if (response.didCancel) {
+        // console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+        // callBack(response.error)
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        // callBack(response.customButton)
+      } else {
+        callBack(response.assets)
+      }
+    })
+  }
 }
 
 export const pickFromGallery = (callBack,option={}) => {
@@ -174,7 +177,7 @@ export const pickFromGallery = (callBack,option={}) => {
       console.log('User tapped custom button: ', response.customButton);
       // callBack(response.customButton)
     } else {
-      callBack(response)
+      callBack(response.assets)
     }
   })
 }

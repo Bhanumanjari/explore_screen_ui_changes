@@ -11,21 +11,27 @@ const toolTipMes = ["Please don't smile", "Look directly into the camera"]
 function FaceClickTooltip({ visible, toggle }) {
     let toggleTimer = useRef()
     useEffect(() => {
-        if(visible){
+        if (visible) {
             toggleTimer.current = setTimeout(() => {
                 toggle()
             }, 5000);
-        }else {
-            if(toggleTimer.current){
+        } else {
+            if (toggleTimer.current) {
                 clearTimeout(toggleTimer.current)
             }
         }
-    },[visible])
+
+        return () => {
+            if (toggleTimer.current) {
+                clearTimeout(toggleTimer.current)
+            }
+        }
+    }, [visible])
 
     return (
         <Modal
             isVisible={visible}
-            style={[styles.modalView,{
+            style={[styles.modalView, {
                 paddingBottom: hp('16%'),
             }]}
             animationIn={"bounceIn"}
@@ -45,7 +51,7 @@ function FaceClickTooltip({ visible, toggle }) {
                     />
                 </Pressable>
                 {
-                    toolTipMes.map((msg,index) => {
+                    toolTipMes.map((msg, index) => {
                         return (
                             <React.Fragment>
                                 <TextView style={styles.tipText}>

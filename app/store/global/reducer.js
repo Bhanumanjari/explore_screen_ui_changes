@@ -4,19 +4,22 @@ const initialState = {
   loading: false,
   isInternetConnected: true,
   isThemLoaderVisible: false,
+  appConfig: {
+    loaderTime: 60
+  }
 };
-const login = (state = initialState, action) => {
+const globalData = (state = initialState, action) => {
   switch (action.type) {
     case types.API_LOADING_START:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case types.API_LOADING_STOP:
-      return {...state, loading: false};
+      return { ...state, loading: false };
     case types.IS_INTERNET_CONNECTED:
-      console.warn(action.payload);
+      // console.warn(action.payload);
       if (action.payload === false) {
-        return {...state, isInternetConnected: action.payload, loading: false};
+        return { ...state, isInternetConnected: action.payload, loading: false };
       } else {
-        return {...state, isInternetConnected: action.payload};
+        return { ...state, isInternetConnected: action.payload };
       }
     case types.THEM_LOADER_STRAT:
       return {
@@ -28,9 +31,14 @@ const login = (state = initialState, action) => {
         ...state,
         isThemLoaderVisible: false,
       };
+    case types.SAVE_APP_CONFIG:
+      return {
+        ...state,
+        appConfig: action.payload,
+      };
     default:
       return state;
   }
 };
 
-export default login;
+export default globalData;

@@ -7,6 +7,7 @@
 #import "RNSplashScreen.h"
 #import <Firebase.h>
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
+//@import GoogleMobileAds;
 
 #ifdef FB_SONARKIT_ENABLED
 #import <FlipperKit/FlipperClient.h>
@@ -53,6 +54,8 @@ static void InitializeFlipper(UIApplication *application) {
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
   [RNSplashScreen show];
+  
+//  [[GADMobileAds sharedInstance] startWithCompletionHandler:nil];
   
   return YES;
 }

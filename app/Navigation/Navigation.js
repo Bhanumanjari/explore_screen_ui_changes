@@ -6,6 +6,9 @@ import { Auth } from './StackNavigation';
 import { color } from '../Theme';
 import { isReadyRef, navigationRef } from '../Services/RootNavigation';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import changeNavigationBarColor from 'react-native-navigation-bar-color';
+import analytics from '@react-native-firebase/analytics';
+import { useCallback } from 'react';
 
 const config = {
   initialRouteName: 'Home',
@@ -40,11 +43,23 @@ const linking = {
 
 
 function Navigation() {
+
+  const routeNameRef = React.useRef();
+
   React.useEffect(() => {
     return () => {
       isReadyRef.current = false;
     };
   }, []);
+
+  React.useEffect(() => {
+    changeNavigationColor()
+  }, [])
+
+  const changeNavigationColor = async () => {
+    await changeNavigationBarColor('#181C1E');
+  }
+
   return (
     <>
       <StatusBar barStyle='light-content' backgroundColor={color.primary_color} />
@@ -54,7 +69,21 @@ function Navigation() {
           linking={linking}
           onReady={() => {
             isReadyRef.current = true;
-          }}>
+          }}
+          onStateChange={async () => {
+            const previousRouteName = routeNameRef.current;
+            const currentRouteName = navigationRef.current.getCurrentRoute().name;
+
+            
+            if (previousRouteName !== currentRouteName) {
+              await analytics().logScreenView({
+                screen_name: currentRouteName,
+                screen_class: currentRouteName,
+              });
+            }
+            routeNameRef.current = currentRouteName;
+          }}
+        >
           <Auth />
         </NavigationContainer>
       </SafeAreaProvider>

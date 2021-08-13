@@ -114,6 +114,9 @@ function SearchedScreen(props) {
             <React.Fragment>
               <FlatList
                 data={props.searchList}
+                removeClippedSubviews={true}
+                windowSize={11}
+                initialNumToRender={5}
                 contentContainerStyle={{ paddingHorizontal: 20 }}
                 showsHorizontalScrollIndicator={false}
                 showsVerticalScrollIndicator={false}

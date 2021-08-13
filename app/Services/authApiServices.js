@@ -1,5 +1,5 @@
 import { baseApiCall } from "../Config/Api"
-import { CHECK_USERNAME, FORGOT_PASSWORD, LOGIN, REGISTER, RESEND_OTP, RESET_PASSWORD, VERIFY_OTP } from "../Config/apiEndPoints"
+import { APP_SETTINGS, CHECK_USERNAME, FORGOT_PASSWORD, LOGIN, REGISTER, RESEND_OTP, RESET_PASSWORD, VERIFY_OTP } from "../Config/apiEndPoints"
 
 export const fetchOtp = (data) => {
     return baseApiCall({
@@ -57,5 +57,12 @@ export const resetPassword = (data, token) => {
             Authorization: "Bearer " + token
         },
         data
+    })
+}
+
+export const getAppSettings = () => {
+    return baseApiCall({
+        url: APP_SETTINGS,
+        method: 'get',
     })
 }

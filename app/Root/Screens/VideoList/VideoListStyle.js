@@ -6,7 +6,6 @@ import { FontSize, PixcelWidth } from "../../../Utils";
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: color.primary_color
     },
     headerImg: {
         marginHorizontal: 20,
@@ -16,8 +15,8 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
         marginVertical: 15,
         width: 24,
-        transform:[{
-            rotate : "90deg"
+        transform: [{
+            rotate: "90deg"
         }]
     },
     videoListContainer: {
@@ -27,7 +26,8 @@ const styles = StyleSheet.create({
     videoContainer: {
         height: hp("100%"),
         width: wp("100%"),
-        backgroundColor: "#000"
+        backgroundColor: "#000",
+        // flex: 1
     },
     userCont: {
         padding: PixcelWidth(20),
@@ -98,6 +98,26 @@ const styles = StyleSheet.create({
         height: PixcelWidth(21),
         width: PixcelWidth(23),
     },
+    playPauseBtn: {
+        position: 'absolute',
+        justifyContent: 'center',
+        alignItems: 'center',
+        bottom: 0,
+        top: 0,
+        right: 0,
+        left: 0
+    },
+    playPauseBtnContainer: {
+        height: wp('100%'),
+        width: wp('100%'),
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    playPauseBtnImg: {
+        height: 40,
+        width: 40,
+        tintColor: "white",
+    }
 })
 
 export default styles

@@ -37,9 +37,9 @@ const styles = StyleSheet.create({
   menuImage: {
     marginHorizontal: 10,
     marginVertical: 15,
-    width:24,
-    transform:[{
-        rotate : "90deg"
+    width: 24,
+    transform: [{
+      rotate: "90deg"
     }]
   },
   userCont: {
@@ -96,19 +96,17 @@ const styles = StyleSheet.create({
   },
 
   footerCont: {
-    borderTopWidth: 0,
-    height: PixcelWidth(100),
     alignItems: 'center',
-    flexDirection: 'row',
-    marginHorizontal: 15,
     backgroundColor: color.primary_color_dark,
+  },
+  faceContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 10,
+    marginTop: 20
   },
   userImgCont: {
     flexDirection: 'row',
-    //marginTop:PixcelWidth(20),
     paddingHorizontal: 15,
-    //backgroundColor: color.secondary_color,
-    //borderRadius:PixcelWidth(20),
     alignItems: 'center',
   },
   addImgCont: {
@@ -145,10 +143,8 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     flexDirection: 'row',
-    // position: 'absolute',
+    marginVertical: 20,
     justifyContent: 'space-between',
-    // bottom: 10,
-    // alignSelf: 'center',
   },
   shareBtn: {
     flex: 0.5,
@@ -212,6 +208,71 @@ const styles = StyleSheet.create({
     marginRight: 10,
     height: PixcelWidth(20),
     width: PixcelWidth(20),
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: "#000",
+    alignItems: 'center'
+  },
+  loaderImag: {
+    height: 160,
+    width: 160,
+  },
+  progressTxt: {
+    color: color.txt_white,
+    fontFamily: font.MontserratSemibold,
+    marginTop: 25,
+    fontSize: 16
+  },
+  playPauseBtn: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    bottom: 0,
+    top: 0,
+    right: 0,
+    left: 0
+  },
+  playPauseBtnContainer: {
+    height: wp,
+    width: wp,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playPauseBtnImg: {
+    height: 40,
+    width: 40,
+    tintColor: "white",
+  },
+  cancelBtn: {
+    backgroundColor: color.btnPrimary_color,
+    paddingHorizontal: 7,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginTop: 50,
+    width: 120
+  },
+  cancelBtnTxt: {
+    color: color.txt_white,
+    fontFamily: font.MontserratSemibold,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  swapBtn: {
+    backgroundColor: color.btnPrimary_color,
+    width: "90%",
+    borderRadius: 20,
+    paddingVertical: 12,
+    marginVertical: 20,
+    marginHorizontal: 10
+  },
+  swapBtnTxt: {
+    color: color.txt_white,
+    textAlign: "center",
+    fontFamily: font.MontserratSemibold,
+    fontSize: 16,
+    textTransform: 'uppercase'
   }
 });
 export default styles;

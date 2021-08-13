@@ -1,37 +1,62 @@
-import { chunk, cloneDeep } from "lodash"
+import { chunk, cloneDeep, flatten } from "lodash"
 import { Container, Content, Header } from "native-base"
 
 import React, { useCallback } from "react"
 import { useState } from "react"
 import { useEffect, useLayoutEffect } from "react"
-import { FlatList, Image, ImageBackground, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native"
+import { ActivityIndicator, FlatList, Image, ImageBackground, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native"
 import FastImage from "react-native-fast-image"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { connect } from "react-redux"
-import { filter, find, newHello, noHellosUpload } from "../../../../assets"
+import { filter, find, newHello, noHellosUpload, video } from "../../../../assets"
 import { TextView } from "../../../../Component"
 import { EmptyList } from "../../../../Component/EmptyList"
 import { ExploreListLoader } from "../../../../ShimmerEffects/ExploreLoader"
 import { setFilterStatus, setSearchQuery } from "../../../../store/filter"
 import { searchVideoByText } from "../../../../store/home"
 import { fetchProfiles } from "../../../../store/profile"
-import { getExploreVideo } from "../../../../store/video"
+import { getExploreVideo, saveVideoWall } from "../../../../store/video"
 import { color, font } from "../../../../Theme"
 import { deviceWidth, FontSize, PixcelHeight, PixcelWidth } from "../../../../Utils"
 import { delay } from "../../../../Utils/globalFun"
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import HeaderTitle from "../../../../Component/HeaderTitle"
+import { useRef } from "react"
+import CategoryItem from "../../../../Component/CategoryItem"
 
 function ScreenComponent(props) {
+
+    const scrollDirection = useRef()
     const [videos, setVideos] = useState([])
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [selectedIndex, setSelectedIndex] = useState(0)
-    useEffect(() => {
-        // props.getExploreVideo()
-    }, [])
+    const [paginationConfig, setPaginationConfig] = useState({
+        page: 0
+    })
 
     useEffect(() => {
-        setVideos(chunk(props.exploreVideoList, 3))
+        let params = {
+            limit: 10,
+            skip: (paginationConfig.page) * 10,
+        }
+
+        if (paginationConfig.categoryId) {
+            params.categoryId = paginationConfig.categoryId
+        }
+
+        props.getExploreVideo(params)
+
+    }, [paginationConfig])
+
+    useEffect(() => {
+        if (paginationConfig.page === 0) {
+            setVideos(chunk(props.exploreVideoList, 3))
+            if (isRefreshing) {
+                setIsRefreshing(false)
+            }
+        } else {
+            setVideos(chunk(flatten(videos).concat(props.exploreVideoList), 3))
+        }
     }, [props.exploreVideoList])
 
     useEffect(() => {
@@ -78,6 +103,8 @@ function ScreenComponent(props) {
     }
 
     const redirectToVideoList = (item, index) => {
+        let videoWall = flatten(videos).slice(index)
+        props.saveVideoWall(videoWall.splice(0, 10))
         props.navigation.navigate('VideoListScreen', {
             index
         })
@@ -86,9 +113,19 @@ function ScreenComponent(props) {
     const onCategorySelect = (item, index) => {
         setSelectedIndex(index)
         if (index === 0) {
-            props.getExploreVideo()
+            // props.getExploreVideo()
+            setPaginationConfig({
+                page: 0
+            })
         } else {
-            props.getExploreVideo(`categoryId=${item._id}`)
+            // let params = {
+            //     categoryId: item._id
+            // }
+            // props.getExploreVideo(params)
+            setPaginationConfig({
+                page: 0,
+                categoryId: item._id
+            })
         }
     }
 
@@ -106,18 +143,31 @@ function ScreenComponent(props) {
         });
     }
 
-    const allCategory = {
+    const allCategory = useRef({
         name: "All",
         _id: 'all_explore_video'
-    }
+    })
 
     const onRefresh = async (isRefreshing) => {
         setIsRefreshing(isRefreshing)
-        props.getExploreVideo()
+        // props.getExploreVideo()
+        setPaginationConfig({
+            page: 0
+        })
         setSelectedIndex(0)
     }
 
-    console.log(":::ExploreScreen:::", isRefreshing)
+    const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
+        const paddingToBottom = 70;
+        if (scrollDirection.current && contentOffset.y > scrollDirection.current.y) {
+            scrollDirection.current = contentOffset
+            return layoutMeasurement.height + contentOffset.y >=
+                contentSize.height - paddingToBottom;
+        } else {
+            scrollDirection.current = contentOffset
+            return false
+        }
+    };
 
     return (
         <Container style={styles.container}>
@@ -126,21 +176,24 @@ function ScreenComponent(props) {
                 <FlatList
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
-                    data={[allCategory].concat(props.categoryList)}
+                    data={[allCategory.current].concat(props.categoryList)}
                     // data={categories}
                     contentContainerStyle={{ margin: PixcelWidth(15) }}
-                    renderItem={(item) => <ExploreFilterItem {...item} selectedIndex={selectedIndex} onPressItem={onCategorySelect} />}
+                    renderItem={(item) => <CategoryItem {...item} selectedIndex={selectedIndex} onPressItem={onCategorySelect} />}
                     keyExtractor={(item, index) => item._id}
                 />
             </View>
             <View style={styles.subContainer}>
                 {
-                    props.isExploreVideoLoading ? <ExploreListLoader /> :
+                    props.isExploreVideoLoading && videos.length === 0 ? <ExploreListLoader /> :
 
                         <FlatList
                             showsVerticalScrollIndicator={false}
+                            windowSize={11}
+                            initialNumToRender={7}
+                            removeClippedSubviews={true}
                             data={videos}
-                            contentContainerStyle={{ paddingBottom: 140 }}
+                            contentContainerStyle={{ paddingBottom: 70 }}
                             renderItem={(item) => <ExploreList {...item} onPressItem={(item, index) => redirectToVideoList(item, index)} />}
                             ListEmptyComponent={() => {
                                 if (!props.isExploreVideoLoading) {
@@ -160,6 +213,22 @@ function ScreenComponent(props) {
                                 refreshing={props.isExploreVideoLoading && isRefreshing}
                                 onRefresh={() => onRefresh(true)}
                             />}
+                            onMomentumScrollEnd={({ nativeEvent }) => {
+                                if (isCloseToBottom(nativeEvent) && !props.isCategoryVideoLoading) {
+                                    setPaginationConfig({
+                                        ...paginationConfig,
+                                        page: paginationConfig.page + 1
+                                    })
+                                }
+                            }}
+                            ListFooterComponent={() => {
+                                if (paginationConfig.page !== 0 && props.isExploreVideoLoading) {
+                                    return (
+                                        <ActivityIndicator color={"#ffffff"} />
+                                    )
+                                }
+                                return <></>
+                            }}
                         />
                 }
             </View>
@@ -221,19 +290,18 @@ const ExploreList = ({ item, index, onPressItem = () => { } }) => {
     }
 }
 const ExploreListItem = ({ item, index, scale = false, onPressItem }) => {
-    const itemWidth = ((deviceWidth - 24) / (3 / (scale ? 2 : 1))) - 10
-    const itemHeight = scale ? 800 + PixcelHeight(80) : 400
+    const itemWidth = ((wp('100%') - 24) / (3 / (scale ? 2 : 1))) - 10
+    const itemHeight = scale ? hp('44%') + 20 : hp('22%')
     return (
-        <Pressable 
-        onPress={() => {
-            onPressItem(item, index)
-        }}>
+        <Pressable
+            onPress={() => {
+                onPressItem(item, index)
+            }}>
             <FastImage source={{
                 uri: item.video.thumbnail
             }} style={[styles.exploreBackImage, {
                 width: itemWidth,
-                height: PixcelHeight(itemHeight),
-
+                height: itemHeight,
             }]}>
 
             </FastImage>
@@ -291,9 +359,9 @@ const styles = StyleSheet.create({
     exploreBackImage: {
         // height:PixcelHeight(400),
         // width:PixcelWidth(((deviceWidth-PixcelWidth(24))/3)-10),
-        marginHorizontal: PixcelWidth(5),
-        marginVertical: PixcelHeight(20),
-        borderRadius: PixcelWidth(10)
+        marginHorizontal: 5,
+        marginVertical: 10,
+        borderRadius: 10
     },
     listContainer: {
         flexDirection: 'row',
@@ -333,7 +401,8 @@ const mapDispatchToProps = {
     setFilterStatus,
     searchVideoByText,
     fetchProfiles,
-    setSearchQuery
+    setSearchQuery,
+    saveVideoWall
 }
 
 export const ExploreTabScreen = connect(mapStateToProps, mapDispatchToProps)(ScreenComponent)

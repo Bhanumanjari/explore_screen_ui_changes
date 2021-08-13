@@ -30,12 +30,14 @@ class ProfileDetailsScreen extends Component {
     }
 
     onImageSelection = (image) => {
-        console.log(image)
+        if(image.length < 1){
+            return
+        }
         let formData = new FormData()
         formData.append("profileImage", {
-            uri: image.uri,
-            type: image.type,
-            name: image?.fileName ?? "abcd.jpeg"
+            uri: image[0].uri,
+            type: image[0].type,
+            name: image[0]?.fileName ?? "abcd.jpeg"
         })
         this.props.updateProfileAction(formData, {
             onSuccess: () => {

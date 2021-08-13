@@ -30,9 +30,9 @@ const RowItem = (props) => {
             end={{ x: 0, y: 1 }}
             colors={['#00000000', '#00000000', '#000000']}
             style={{ flex: 1 }}>
-            <SwapFace
+            {/* <SwapFace
               containerStyle={{ alignSelf: 'flex-end', margin: PixcelWidth(10) }}
-            />
+            /> */}
             <TextView style={styles.flatlistImgTxt}>
               {`${(titles[0] && titles[0]?.trim()) || ''}` + '\n'}
             </TextView>

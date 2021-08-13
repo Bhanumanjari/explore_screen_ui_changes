@@ -35,7 +35,7 @@ export const CategoryListItem = ({ item, index }) => {
           end={{ x: 0, y: 1 }}
           colors={['#00000000', '#00000000', '#000000']}
           style={{ flex: 1 }}>
-          <SwapFace containerStyle={styles.userSwapContainer} />
+          {/* <SwapFace containerStyle={styles.userSwapContainer} /> */}
           <TextView style={styles.flatlistImgTxt}>
             {`${(titles[0] && titles[0]?.trim()) || ''}` + '\n'}
           </TextView>

@@ -1,4 +1,4 @@
-import { deleteFace, feedback, fetchLanguages, searchProfile, updateProfile } from '../../Services/profileServices';
+import { blockUnblockUser, deleteFace, feedback, fetchLanguages, searchProfile, updateProfile } from '../../Services/profileServices';
 import { UPDATE_PROFILE, SAVE_USER_PROFILE, SET_USER_PROFILE_LOADER, SAVE_SEARCH_PROFILE, SET_SEARCH_PROFILE_LOADER, SAVE_USERNAME_AVAIBILITY, SET_USERNAME_AVAIBILITY_LOADER, SAVE_USER_VIDEOS, SET_USER_VIDEOS_LOADER, CHANGE_USERNAME_ERROR_MESSAGE, SET_LANGUAGES_LOADER, SAVE_LANGUAGES } from './actionTypes';
 import { setAccessToken, setProfile } from './../login/actions';
 import { apiLoadingStart, apiLoadingStop } from './../global/actions';
@@ -141,6 +141,18 @@ export const postFeedback = (data, callback) => {
     })
   }
 
+}
+
+export const blockUnblock = (data, callback) => {
+  return (dispatch, getState) => {
+    blockUnblockUser(data).then(res => {
+      callback(true)
+      const userData = getState().login.data
+      dispatch(setProfile({...userData, blocked: res}))
+    }).catch(err => {
+      callback(false)
+    })
+  }
 }
 
 export const saveProfile = (payload) => {

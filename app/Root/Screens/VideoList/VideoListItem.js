@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Image, Platform, Pressable, View } from "react-native"
+import { Image, Platform, Pressable, View, Animated, AppState } from "react-native"
 import LinearGradient from "react-native-linear-gradient"
 import Video from "react-native-video"
 import { TextView } from "../../../Component"
@@ -16,10 +16,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { likeVideoAction, saveVideoAction, shareVideoAction, shareVideoOnSocial } from "../../../store/video/actions"
 import { color } from "../../../Theme"
 import { StackActions, useNavigation } from "@react-navigation/native";
-import { downloadIcon, shareIcon } from "../../../assets"
+import { downloadIcon, pauseButton, playButton, shareIcon } from "../../../assets"
 import Share from "react-native-share"
 import { requestStoragePermission } from "../../../Config/permissions"
-import { DocumentDirectoryPath, downloadFile } from "react-native-fs"
+import { DocumentDirectoryPath, downloadFile, exists } from "react-native-fs"
 import CameraRoll from "@react-native-community/cameraroll"
 import { bufferConfig } from "../../../Utils/constant"
 
@@ -30,6 +30,8 @@ const VideoListItem = ({ item, index, currentViewItem = [], paused = true, video
     const dispatch = useDispatch()
     const titles = item.title?.split('-');
     const isFirstRender = useRef(true)
+    const playPauseBtnOpacity = useRef(new Animated.Value(0))
+    const appState = useRef(AppState.currentState);
     const navigation = useNavigation()
 
     const userId = useSelector(state => state.login.data?._id)
@@ -42,6 +44,7 @@ const VideoListItem = ({ item, index, currentViewItem = [], paused = true, video
     const [likeCount, setLikeCount] = useState(item.liked.length)
     const [saveCount, setSaveCount] = useState(item.saved.length)
     const [shareCount, setShareCount] = useState(item.shared.length)
+    const [appStateVisible, setAppStateVisible] = useState(appState.current);
 
     useEffect(() => {
         if (isFirstRender.current) {
@@ -75,9 +78,44 @@ const VideoListItem = ({ item, index, currentViewItem = [], paused = true, video
         setIsSaved(findIndex(item.saved, { userId }) > -1)
     }, [item.saved.length])
 
+    useEffect(() => {
+        AppState.addEventListener("change", _handleAppStateChange);
+
+        return () => {
+            AppState.removeEventListener("change", _handleAppStateChange);
+        };
+    }, []);
+
+    const _handleAppStateChange = (nextAppState) => {
+        setAppStateVisible(nextAppState);
+        // console.log("AppState", appState.current);
+    };
+
+    useEffect(() => {
+        for (const currentView of currentViewItem) {
+            if (currentView.index === index && currentView.isViewable) {
+                if (
+                    appState.current.match(/inactive|background/) &&
+                    appStateVisible === "active"
+                ) {
+                    console.log("App has come to the foreground!");
+                    if (isPaused)
+                        setIsPaused(false)
+                } else {
+                    console.log("App has goes to the background!");
+                    if (!isPaused)
+                        setIsPaused(true)
+                }
+            } else {
+                setIsPaused(true)
+            }
+        }
+        appState.current = appStateVisible;
+    }, [appStateVisible])
+
     const onLoad = () => {
         // setIsVideoLoading(false)
-        console.log("onLoad")
+        // console.log("onLoad")
     }
     const onLoadStart = () => {
 
@@ -119,9 +157,9 @@ const VideoListItem = ({ item, index, currentViewItem = [], paused = true, video
     const shareHello = async () => {
 
         setIsPaused(true)
-        dispatch(shareVideoOnSocial(item._id,item.video,(res) => {
-            setIsPaused(false)
-            if(res){
+        dispatch(shareVideoOnSocial(item._id, item.video, (res) => {
+            // setIsPaused(false)
+            if (res) {
                 setShareCount(shareCount + 1)
             }
         }))
@@ -145,33 +183,62 @@ const VideoListItem = ({ item, index, currentViewItem = [], paused = true, video
 
     const downloadHello = async () => {
         let isPermission = true
-        if(Platform.OS === 'android'){
+        if (Platform.OS === 'android') {
             isPermission = await requestStoragePermission()
         }
         console.log(isPermission)
-        if(!isPermission){
+        if (!isPermission) {
             return
         }
-        
+
         const options = {
             fromUrl: item.video.original,
             toFile: `${DocumentDirectoryPath}/download_${item.video.fileName}`,
         };
 
-        showBottomToast("Video downloading started...")  
+        showBottomToast("Video downloading started...")
         downloadFile(options).promise.then(async res => {
             if (res.statusCode === 200) {
-                const isSaved = await CameraRoll.save(`${DocumentDirectoryPath}/${item.video.fileName}`, {
+                const isSaved = await CameraRoll.save(`${DocumentDirectoryPath}/download_${item.video.fileName}`, {
                     type: 'video',
-                    album: 'Helloface'
+                    album: 'Hellos'
                 })
-                showBottomToast("Video is downloaded successfully")  
+                showBottomToast("Video is downloaded successfully")
             }
-          }).catch(err => {
+        }).catch(err => {
             console.log(err)
-            showBottomToast("Error while downloading video") 
-          })
+            showBottomToast("Error while downloading video")
+        })
     }
+
+    const playPause = () => {
+        if (isPaused) {
+            setIsPaused(false)
+            Animated.timing(playPauseBtnOpacity.current, {
+                toValue: 0,
+                duration: 1000,
+                useNativeDriver: true
+            }).start()
+        } else {
+            setIsPaused(true)
+            Animated.timing(playPauseBtnOpacity.current, {
+                toValue: 0.8,
+                duration: 1000,
+                useNativeDriver: true
+            }).start()
+        }
+    }
+
+    useEffect(() => {
+        if (!isPaused) {
+            if (playPauseBtnOpacity.current._value > 0) {
+                Animated.timing(playPauseBtnOpacity.current, {
+                    toValue: 0,
+                    duration: 1000
+                }).start()
+            }
+        }
+    }, [isPaused])
 
     return (
 
@@ -187,28 +254,40 @@ const VideoListItem = ({ item, index, currentViewItem = [], paused = true, video
             ]}
             style={styles.videoListContainer}
         >
-
-            <Video
-                ref={(ref) => videoPlayer = ref}
-                source={{
-                    uri: item.video?.original,
-                    // cache: true
-                }}
-                // hideShutterView
-                disableFocus={true}
-                paused={isPaused}
-                style={{ ...styles.videoContainer, ...videoContainerStyle }}
-                repeat
-                resizeMode="contain"
-                onLoad={onLoad}
-                onLoadStart={onLoadStart}
-                onBuffer={onBuffer}
-                onReadyForDisplay={onReadyForDisplay}
-                onError={onError}
-                bufferConfig={bufferConfig}
-                // poster={item.video?.thumbnail}
-                // posterResizeMode='cover'
-            />
+            <View>
+                <Video
+                    ref={(ref) => videoPlayer = ref}
+                    source={{
+                        uri: item.video?.original,
+                        // cache: true
+                    }}
+                    // hideShutterView
+                    // disableFocus={true}
+                    paused={isPaused}
+                    style={{ ...styles.videoContainer, ...videoContainerStyle }}
+                    // style={{ ...styles.videoContainer}}
+                    repeat
+                    resizeMode="contain"
+                    onLoad={onLoad}
+                    onLoadStart={onLoadStart}
+                    onBuffer={onBuffer}
+                    onReadyForDisplay={onReadyForDisplay}
+                    onError={onError}
+                    bufferConfig={bufferConfig}
+                    poster={item.video?.thumbnail}
+                    posterResizeMode='cover'
+                />
+                <View style={styles.playPauseBtn}>
+                    <Pressable style={styles.playPauseBtnContainer} onPress={playPause}>
+                        <Animated.Image
+                            style={[styles.playPauseBtnImg, {
+                                opacity: playPauseBtnOpacity.current
+                            }]}
+                            source={isPaused ? playButton : pauseButton}
+                        />
+                    </Pressable>
+                </View>
+            </View>
 
             <React.Fragment>
                 <View style={[styles.userCont, {

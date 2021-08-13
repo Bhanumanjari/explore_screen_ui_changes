@@ -31,3 +31,5 @@ export const GET_LANGUAGES = 'languages';
 export const GET_MY_HELLOS = 'videos/reels';
 export const DELETE_MY_HELLOS = 'videos';
 export const FEEDBACK = 'feedback';
+export const BLOCK_UNBLOCK_USER = 'users/block';
+export const APP_SETTINGS = 'settings';

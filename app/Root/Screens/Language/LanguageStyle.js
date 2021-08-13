@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
         paddingLeft: 15,
         justifyContent: 'center',
         borderRadius: 15,
-        borderColor: color.txt_white,
+        borderColor: color._000000,
         borderWidth: 1.5
     },
     flatlistCont: {

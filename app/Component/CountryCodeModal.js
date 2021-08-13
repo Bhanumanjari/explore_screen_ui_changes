@@ -4,9 +4,13 @@ import Modal from "react-native-modal"
 import { TextView } from "."
 import { font } from "../Theme"
 const countryCode = [{
-    code: "+91"
+    code: "+91",
+    flag: "🇮🇳",
+    label: "🇮🇳+91"
 },{
-    code: "+1"
+    code: "+1",
+    flag: "🇺🇸",
+    label: "🇺🇸+1"
 }]
 const CountryCodeModal = ({visible, toggle, onSelectCountryCode}) => {
     return (
@@ -22,8 +26,8 @@ const CountryCodeModal = ({visible, toggle, onSelectCountryCode}) => {
                     return (
                         <TextView key={index} onPress={() => {
                             toggle()
-                            onSelectCountryCode(item.code)
-                        }} style={styles.codeTxt}>{item.code}</TextView>
+                            onSelectCountryCode(item)
+                        }} style={styles.codeTxt}>{item.label}</TextView>
                     )
                   }}
                   ItemSeparatorComponent={() => {

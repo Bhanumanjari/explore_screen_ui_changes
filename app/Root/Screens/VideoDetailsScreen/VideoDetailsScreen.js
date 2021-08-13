@@ -7,6 +7,9 @@ import {
   Pressable,
   Platform,
   Alert,
+  Animated,
+  AppState,
+  SafeAreaView
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -39,7 +42,7 @@ import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import CameraRoll from "@react-native-community/cameraroll";
 import { StackActions } from '@react-navigation/native';
 import Share from 'react-native-share';
-import { explore, menu_dot, shareIcon, socialShare } from '../../../assets';
+import { explore, menu_dot, pauseButton, playButton, shareIcon, socialShare } from '../../../assets';
 import { delay } from '../../../Utils/globalFun';
 import axios from 'axios'
 import ThemLoader from '../../../Component/ThemLoader';
@@ -52,10 +55,14 @@ import {
 } from 'react-native-popup-menu';
 import ReportModal from '../../../Component/ReportModal';
 import { bufferConfig } from '../../../Utils/constant';
+import { TestIds, RewardedAd, RewardedAdEventType } from '@react-native-firebase/admob';
+import BackButton from "../../../Component/BackButton";
+import { requestStoragePermission } from '../../../Config/permissions';
 class VideoDetailsScreen extends Component {
-  swapVideoData = {}
   duration = null
   source = null
+  rewardAd = null
+  faceData = null
   state = {
     addedBy: {},
     liked: [],
@@ -67,7 +74,8 @@ class VideoDetailsScreen extends Component {
     video: this.props.route.params?.video ?? {},
     isVideoLoading: true,
     isVideoLoaded: false,
-    selectedFaceIndex: -1,
+    selectedFaceIndex: 0,
+    selectedFace: this.props.user?.faces[0] ?? null,
     isFaceSwapped: false,
     faceSwipCount: 0,
     isShareVisible: false,
@@ -78,29 +86,23 @@ class VideoDetailsScreen extends Component {
     isUserVideo: false,
     isLoaderVisible: false,
     _id: '',
-    openReportModal: false
+    openReportModal: false,
+    appState: AppState.currentState,
+    playPauseBtnOpacity: new Animated.Value(0)
   };
 
   componentDidMount = async () => {
-    // await saveData('0', faceSwipCount);
-    // console.log(this.props.route);
+
     this.setState({ ...this.props.route.params }, () => {
       // console.log(this.state);
       this.setVideoLike();
       this.setVideoSave();
-      if (!this.state.isFaceSwapped)
+      if (!this.state.isFaceSwapped) {
+        // this.loadRewardAd()
         this.fetchDetails()
+      }
     });
-    this._unsubscribe = this.props.navigation.addListener('focus', () => {
-      this.setState({
-        isPaused: false,
-      });
-    });
-    this._unsubscribeBlur = this.props.navigation.addListener('blur', () => {
-      this.setState({
-        isPaused: true,
-      });
-    });
+    AppState.addEventListener("change", this._handleAppStateChange);
     this.setFaceSwipCount();
     this.setHeader()
   };
@@ -146,7 +148,22 @@ class VideoDetailsScreen extends Component {
     }
   };
 
+  _handleAppStateChange = nextAppState => {
+    let isPaused = false
+    if (
+      this.state.appState.match(/inactive|background/) &&
+      nextAppState === "active"
+    ) {
+      console.log("App has come to the foreground!");
+      isPaused = false
+    } else {
+      isPaused = true
+    }
+    this.setState({ appState: nextAppState, isPaused });
+  };
+
   componentWillUnmount = () => {
+    AppState.removeEventListener("change", this._handleAppStateChange);
     this._unsubscribe && this._unsubscribe();
     this._unsubscribeBlur && this._unsubscribeBlur();
   };
@@ -177,7 +194,7 @@ class VideoDetailsScreen extends Component {
     });
   };
 
-  onFacePress = async (item, index) => {
+  onFacePress = async (item, index, hasAdShown = false) => {
 
     if (!this.duration) {
       showBottomToast("Please wait until video loaded fully")
@@ -187,7 +204,7 @@ class VideoDetailsScreen extends Component {
     this.setState({
       isLoaderVisible: true
     })
-    this.pause();
+    !hasAdShown && this.pause();
     let formData = new FormData()
     formData.append("_id", this.state._id)
     formData.append("faceId", item._id)
@@ -258,12 +275,12 @@ class VideoDetailsScreen extends Component {
     const { video } = this.state;
     const options = {
       fromUrl: video.original,
-      toFile: `${RNFS.DocumentDirectoryPath}/${video.fileName}`,
+      toFile: `${RNFS.DocumentDirectoryPath}/download_${video.fileName}`,
     };
     console.log(options);
     let permission = true
     if (Platform.OS === 'android') {
-      permission = await this.requestStoragePermission()
+      permission = await requestStoragePermission()
     }
     console.log(permission)
     if (!permission)
@@ -275,9 +292,9 @@ class VideoDetailsScreen extends Component {
         console.log(res)
         if (res.statusCode === 200) {
 
-          const isSaved = await CameraRoll.save(`${RNFS.DocumentDirectoryPath}/${video.fileName}`, {
+          const isSaved = await CameraRoll.save(`${RNFS.DocumentDirectoryPath}/download_${video.fileName}`, {
             type: 'video',
-            album: 'Helloface'
+            album: 'Hellos'
           })
           // await RNFS.copyFile(`${RNFS.DocumentDirectoryPath}/${video.fileName}`, `${RNFS.DocumentDirectoryPath}/Helloface/${video.fileName}`)
           console.log("isSaved", isSaved)
@@ -315,15 +332,19 @@ class VideoDetailsScreen extends Component {
   };
 
   pause = () => {
-    this.setState({
-      isPaused: true,
-    });
+    if (!this.state.isPaused) {
+      this.setState({
+        isPaused: true,
+      });
+    }
   };
 
   play = () => {
-    this.setState({
-      isPaused: false,
-    });
+    if (this.state.isPaused) {
+      this.setState({
+        isPaused: false,
+      });
+    }
   };
 
   likeUnLikeVideo = () => {
@@ -421,7 +442,7 @@ class VideoDetailsScreen extends Component {
 
     let permission = true
     if (Platform.OS === 'android') {
-      permission = await this.requestStoragePermission()
+      permission = await requestStoragePermission()
     }
     // console.log(permission)
     if (!permission)
@@ -455,9 +476,7 @@ class VideoDetailsScreen extends Component {
   setHeader = () => {
     this.props.navigation.setOptions({
       title: '',
-      headerLeft: () => <Pressable onPress={() => this.props.navigation.goBack()}>
-        <Image source={backArrow} style={styles.headerImg} />
-      </Pressable>,
+      headerLeft: () => <BackButton />,
       headerRight: () =>
         <Menu>
           <MenuTrigger>
@@ -477,7 +496,7 @@ class VideoDetailsScreen extends Component {
             <MenuOption onSelect={() => this.setState({ openReportModal: true })}>
               <TextView>
                 Report
-                  </TextView>
+              </TextView>
             </MenuOption>
           </MenuOptions>
         </Menu>,
@@ -496,7 +515,6 @@ class VideoDetailsScreen extends Component {
     const { _id, video } = this.state
     this.pause()
     this.props.shareOnSocial(_id, video, (res) => {
-      this.play()
       if (res) {
         this.state.shared.push({
           userId: this.props.user._id,
@@ -529,11 +547,92 @@ class VideoDetailsScreen extends Component {
     // }
   }
 
+  selectFace = (item, index) => {
+
+    this.setState({
+      selectedFaceIndex: index,
+      selectedFace: item
+    })
+
+    // if (this.rewardAd) {
+    //   this.pause();
+    //   this.faceData = { item, index }
+    //   this.rewardAd.show();
+    // } else {
+    //   this.onFacePress(item, index)
+    // }
+  }
+
+  swapFace = () => {
+
+    if (!this.duration) {
+      showBottomToast("Please wait until video is loading")
+      return
+    }
+
+    if (!this.state.selectedFace._id) {
+      showBottomToast("Please select face to swap with")
+      return
+    }
+
+    this.props.navigation.dispatch(StackActions.replace("SwapVideoLoaderScreen", {
+      faceId: this.state.selectedFace._id,
+      videoId: this.state._id,
+      duration: this.duration
+    }))
+  }
+
+  loadRewardAd = () => {
+    this.rewardAd = RewardedAd.createForAdRequest(TestIds.REWARDED);
+
+    this.rewardAd.onAdEvent((type, error) => {
+      if (type === RewardedAdEventType.LOADED) {
+        console.log('Add loaded');
+      }
+
+      if (type === RewardedAdEventType.EARNED_REWARD) {
+        console.log('Ad completed');
+      }
+
+      if (type === "closed") {
+        console.log('Add closed');
+        const { item, index } = this.faceData
+        this.onFacePress(item, index, true)
+      }
+
+      if (type === "opened") {
+        console.log('Add opened');
+        this.rewardAd = null
+      }
+    });
+
+    this.rewardAd.load();
+
+  }
+
   cancelRequest = () => {
     this.setState({
       isLoaderVisible: false
     })
     this.source.cancel("Swap video request cancelled successfully")
+  }
+
+  playPause = () => {
+    if (this.state.isPaused) {
+      this.play()
+      Animated.timing(this.state.playPauseBtnOpacity, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true
+      }).start()
+    } else {
+      this.pause()
+      Animated.timing(this.state.playPauseBtnOpacity, {
+        toValue: 0.8,
+        duration: 1000,
+        useNativeDriver: true
+      }).start()
+    }
   }
 
   render() {
@@ -565,27 +664,41 @@ class VideoDetailsScreen extends Component {
           ]}
           style={{ flex: 1 }}>
           <View style={styles.videoInnerContainer}>
-            <Video
-              ref={(ref) => this.videoPlayer = ref}
-              source={{
-                uri: video?.original // "https://helloface1.s3.ap-south-1.amazonaws.com/297_Pic_1395084196034_Animated_Vid_327822514145.mp4" //"https://objectstore.e2enetworks.net/helloface/Videos/alia_gangubai_del1.mp4" //
-              }}
-              // hideShutterView
-              disableFocus={true}
-              paused={this.state.isPaused}
-              style={styles.videoContainer}
-              repeat
-              resizeMode="contain"
-              onLoad={this.onLoad}
-              onLoadStart={this.onLoadStart}
-              onBuffer={this.onBuffer}
-              onReadyForDisplay={this.onReadyForDisplay}
-              onError={(err) => console.log(err)}
-              bufferConfig={bufferConfig}
-            // maxBitRate={2000000}
-            // poster={video.thumbnail}
-            // posterResizeMode='cover'
-            />
+            <View style={{ flex: 1 }}>
+              <Video
+                ref={(ref) => this.videoPlayer = ref}
+                source={{
+                  uri: video?.original // "https://helloface1.s3.ap-south-1.amazonaws.com/297_Pic_1395084196034_Animated_Vid_327822514145.mp4" //"https://objectstore.e2enetworks.net/helloface/Videos/alia_gangubai_del1.mp4" //
+                }}
+                // hideShutterView
+                disableFocus={false}
+                paused={this.state.isPaused}
+                style={styles.videoContainer}
+                repeat
+                resizeMode="contain"
+                onLoad={this.onLoad}
+                onLoadStart={this.onLoadStart}
+                onBuffer={this.onBuffer}
+                onReadyForDisplay={this.onReadyForDisplay}
+                onError={(err) => console.log(err)}
+                bufferConfig={bufferConfig}
+                // maxBitRate={2000000}
+                poster={video.thumbnail}
+                posterResizeMode='cover'
+              />
+              <View style={styles.playPauseBtn}>
+                <Pressable style={styles.playPauseBtnContainer}
+                  onPress={this.playPause}
+                >
+                  <Animated.Image
+                    style={[styles.playPauseBtnImg, {
+                      opacity: this.state.playPauseBtnOpacity
+                    }]}
+                    source={this.state.isPaused ? playButton : pauseButton}
+                  />
+                </Pressable>
+              </View>
+            </View>
             {/* {!this.state.isVideoLoaded && (
               <FastImage
                 style={styles.thumbnailImage}
@@ -606,6 +719,7 @@ class VideoDetailsScreen extends Component {
                 width={deviceWidth}
               />
             )}
+
             {/* {!this.state.isFaceSwapped ? ( */}
             <React.Fragment>
               <View style={styles.userCont}>
@@ -684,33 +798,39 @@ class VideoDetailsScreen extends Component {
             {/* // ) : null} */}
           </View>
         </LinearGradient>
-        {!this.state.videoId && <Footer style={styles.footerCont}>
+        {(!this.state.isUserVideo || this.state.isFaceSwapped) && <SafeAreaView style={styles.footerCont}>
           {!this.state.isFaceSwapped ?
-            <React.Fragment>
-              <FlatList
-                data={this.props.user?.faces ?? []}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                showsVerticalScrollIndicator={false}
-                renderItem={(item) => (
-                  <RawItem
-                    {...item}
-                    selectedFaceIndex={0}
-                    onFacePress={this.onFacePress}
-                    needToDisable
-                  />
-                )}
-                keyExtractor={(item, index) => index.toString()}
-                extraData={this.state.selectedFaceIndex}
-              />
-              <TouchableOpacity
-                onPress={() => {
-                  this.onAddFace()
-                }}
-                style={styles.addImgCont}>
-                <Image source={plus} style={styles.plusImg} />
+            <>
+              <View style={styles.faceContainer}>
+                <FlatList
+                  data={this.props.user?.faces ?? []}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={(item) => (
+                    <RawItem
+                      {...item}
+                      selectedFaceIndex={selectedFaceIndex}
+                      onFacePress={this.selectFace}
+                    // needToDisable
+                    />
+                  )}
+                  keyExtractor={(item, index) => index.toString()}
+                  extraData={this.state.selectedFaceIndex}
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    this.onAddFace()
+                  }}
+                  style={styles.addImgCont}>
+                  <Image source={plus} style={styles.plusImg} />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity activeOpacity={0.5} style={styles.swapBtn} onPress={this.swapFace}>
+                <TextView style={styles.swapBtnTxt}>swap</TextView>
               </TouchableOpacity>
-            </React.Fragment> : (<View style={styles.btnContainer}>
+            </> :
+            <View style={styles.btnContainer}>
               <Pressable onPress={this.onShareToFeed} style={styles.shareBtn}>
                 <Image
                   style={styles.exploreImg}
@@ -721,8 +841,9 @@ class VideoDetailsScreen extends Component {
               <Pressable onPress={this.onSave} style={styles.saveBtn}>
                 <TextView style={styles.saveBtnTxt}>DOWNLOAD</TextView>
               </Pressable>
-            </View>)}
-        </Footer>}
+            </View>
+          }
+        </SafeAreaView>}
 
         <ShareModal
           visible={this.state.isShareVisible}

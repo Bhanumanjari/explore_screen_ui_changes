@@ -18,6 +18,7 @@ import splash from 'react-native-splash-screen';
 import { fetchMe } from '../../../Services/homeServices';
 import FastImage from 'react-native-fast-image';
 import { TextView } from '../../../Component';
+import { getForMeVideo, getTrendingVideo } from '../../../store/home';
 
 class SplashScreen extends Component {
   componentDidMount() {
@@ -195,7 +196,7 @@ class SplashScreen extends Component {
     return (
       <View style={styles.container1}>
         <FastImage style={styles.logo} source={splash_logo} resizeMode={FastImage.resizeMode.contain} />
-        <TextView style={styles.logoTxt}>HELLO FACE</TextView>
+        <TextView style={styles.logoTxt}>HELLOS</TextView>
         <FastImage style={styles.imageLayer} source={splashBottomLayer} resizeMode={"stretch"}>
           <FastImage style={styles.imageStyle} source={splash_bottom} resizeMode={FastImage.resizeMode.stretch} />
         </FastImage>
@@ -204,7 +205,7 @@ class SplashScreen extends Component {
   }
 }
 
-const mapActionCreators = { setProfile, setAccessToken, setGuestProfile, fetchUserProfile };
+const mapActionCreators = { setProfile, setAccessToken, setGuestProfile, fetchUserProfile, getTrendingVideo, getForMeVideo };
 const mapStateToProps = (state) => {
   return {};
 };

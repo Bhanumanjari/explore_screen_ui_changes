@@ -16,6 +16,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { showBottomToast } from '../../../Utils';
 import { validatePhoneNumber } from '../../../Utils/globalFun';
 import CountryCodeModal from '../../../Component/CountryCodeModal';
+import { EULA, PRIVACY_POLICY, TERMS_CONDITION } from '../../../Utils/constant';
+import CountryPicker from 'react-native-country-picker-modal'
 
 class SignupMoreDetails extends Component {
   state = {
@@ -25,6 +27,7 @@ class SignupMoreDetails extends Component {
     confirmPassword: '',
     phoneNumber: '',
     countryCode: "+91",
+    countryFlag: "IN",
     isPasswordVisible: false,
     isConfirmPasswordVisible: false,
     showCountryCodeModal: false
@@ -85,9 +88,23 @@ class SignupMoreDetails extends Component {
     });
   };
 
+  redirectToWebView = ({ title, url }) => {
+    this.props.navigation.navigate('WebViewComponentScreen', {
+      title,
+      url,
+    });
+  };
+
+  onSelect = (country) => {
+    this.setState({
+      countryFlag: country.cca2,
+      countryCode: "+" + country.callingCode[0]
+    })
+  }
+
   render() {
     return (
-      <KeyboardAwareScrollView style={styles.container} bounces={false}>
+      <KeyboardAwareScrollView style={styles.container}>
         <MainHeader
           title={'More Detail'}
           onBackPress={() => {
@@ -135,13 +152,19 @@ class SignupMoreDetails extends Component {
                   <TextView>{"+91"}</TextView>
                 </View> */}
               <View style={[styles.inputTxtCont]}>
-                <Pressable style={{ marginLeft: 20, margin: 10 }} onPress={() => {
-                  this.setState({
-                    showCountryCodeModal: true
-                  })
-                }}>
-                  <TextView style={{ color: "white" }}>{this.state.countryCode}</TextView>
-                </Pressable>
+                <View style={{ marginLeft: 20, margin: 10 }}>
+                  {/* <TextView style={{ color: "white" }}>{this.state.countryFlag}</TextView> */}
+                  <CountryPicker
+                    {...{
+                      countryCode: this.state.countryFlag,
+                      withFilter: true,
+                      withFlag: true,
+                      withCountryNameButton: false,
+                      withCallingCode: true,
+                      onSelect: this.onSelect,
+                    }}
+                  />
+                </View>
                 {/* <Image source={phone}
                     style={styles.awardImg} /> */}
                 <TextInput
@@ -212,6 +235,22 @@ class SignupMoreDetails extends Component {
                   />
                 </Pressable>
               </View>
+              <TextView style={styles.acceptTxt}>{"By proceeding, I agree to Hellos "}<TextView style={styles.acceptLinkTxt} onPress={() => {
+                this.redirectToWebView({
+                  title: 'Terms & Conditions',
+                  url: TERMS_CONDITION,
+                })
+              }}>{"Terms of Use"}</TextView>{", "}<TextView style={styles.acceptLinkTxt} onPress={() => {
+                this.redirectToWebView({
+                  title: 'End User Licence Agreement',
+                  url: EULA,
+                })
+              }}>{" End User Licence Agreement "}</TextView>{" and acknowledge that I have read the "}<TextView style={styles.acceptLinkTxt} onPress={() => {
+                this.redirectToWebView({
+                  title: 'Privacy Policy',
+                  url: PRIVACY_POLICY,
+                })
+              }}>{"Privacy Policy"}</TextView></TextView>
               <TouchableOpacity
                 style={styles.acceptBtn}
                 onPress={() => {
@@ -222,17 +261,18 @@ class SignupMoreDetails extends Component {
             </View>
           </View>
         </View>
-        <CountryCodeModal visible={this.state.showCountryCodeModal} toggle={() => {
+        {/* <CountryCodeModal visible={this.state.showCountryCodeModal} toggle={() => {
           this.setState({
             showCountryCodeModal: !this.state.showCountryCodeModal
           })
         }}
-          onSelectCountryCode={(countryCode) => {
+          onSelectCountryCode={(country) => {
             this.setState({
-              countryCode
+              countryCode: country.code,
+              countryFlag: country.flag,
             })
           }}
-        />
+        /> */}
       </KeyboardAwareScrollView>
     );
   }

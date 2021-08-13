@@ -1,5 +1,7 @@
 {
-    "react-native": {
-      "ml_vision_face_model": true
-    }
+  "react-native": {
+    "ml_vision_face_model": true,
+    "admob_android_app_id": "ca-app-pub-3581028228490522~6767792287",
+    "admob_ios_app_id": "ca-app-pub-3581028228490522~7828209622"
   }
+}

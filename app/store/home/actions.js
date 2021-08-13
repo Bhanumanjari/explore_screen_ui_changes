@@ -17,7 +17,7 @@ import {
 export function getTrendingVideo(params) {
   return (dispatch, getState) => {
     const hasList = getState().home.trendingList.length > 0
-    if(!hasList) dispatch(setTrendingLoader(true));
+    if (!hasList) dispatch(setTrendingLoader(true));
     getVideoList(params, getState)
       .then((res) => {
         dispatch(saveTrendingVideo(res));
@@ -39,7 +39,7 @@ export function saveTrendingVideo(data) {
 export function getForMeVideo(params) {
   return (dispatch, getState) => {
     const hasList = getState().home.forMeList.length > 0
-    if(!hasList) dispatch(setForMeLoader(true));
+    if (!hasList) dispatch(setForMeLoader(true));
     getVideoList(params, getState)
       .then((res) => {
         dispatch(saveForMeVideo(res));
@@ -61,7 +61,7 @@ export function saveForMeVideo(data) {
 export function getCategoryList(params, fetchList = false) {
   return (dispatch, getState) => {
     const hasList = getState().home.categoryList.length > 0
-    if(!hasList) dispatch(setCategoryLoader(true));
+    if (!hasList) dispatch(setCategoryLoader(true));
     fetchCategoryList(params)
       .then((res) => {
         dispatch(saveCategoryList(res));
@@ -82,9 +82,16 @@ export function saveCategoryList(data) {
 }
 export function getCategoryVideoList(params) {
   return (dispatch, getState) => {
-    const hasList = getState().home.categoryVideoList.length > 0
-    if(!hasList) dispatch(setCategoryVideoLoader(true));
-    getVideoList(params, getState)
+    // const hasList = getState().home.categoryVideoList.length > 0
+    // if (!hasList) 
+    dispatch(setCategoryVideoLoader(true));
+
+    let query = ''
+    Object.keys(params).forEach((key, index) => {
+      query += `${index === 0 ? "?" : "&"}${key}=${params[key]}`
+    })
+
+    getVideoList(query, getState)
       .then((res) => {
         dispatch(saveCategoryVideoList(res));
       })

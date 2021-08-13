@@ -1,6 +1,6 @@
-import React, { useCallback } from "react"
+import React, { useCallback, useEffect } from "react"
 import { useLayoutEffect, useState } from "react"
-import { Pressable, View, Image, FlatList, SafeAreaView, StatusBar, Platform } from "react-native"
+import { Pressable, View, Image, FlatList, SafeAreaView, StatusBar, Platform, Dimensions } from "react-native"
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useDispatch, useSelector } from "react-redux"
@@ -16,19 +16,67 @@ import {
 } from 'react-native-popup-menu';
 import { TextView } from "../../../Component"
 import ReportModal from "../../../Component/ReportModal"
+import { getVideoWall, saveVideoWall } from "../../../store/video"
+import { useRef } from "react"
+import { hideNavigationBar, showNavigationBar } from "react-native-navigation-bar-color"
 
-const ORIGINAL_HEIGHT = hp("100%") - StatusBar.currentHeight
+const ORIGINAL_HEIGHT = Dimensions.get('screen').height
+
 const VideoList = (props) => {
+
+    const isFirstRender = useRef(true)
+    const currentPage = Math.abs(parseInt(props.route.params.index / 10))
+
+
     const viewabilityConfig = {
         minimumViewTime: 500,
         viewAreaCoveragePercentThreshold: 95
     }
     const exploreVideoList = useSelector(state => state.video.exploreVideoList)
+    const videoWallList = useSelector(state => state.video.videoWallList)
+
     const dispatch = useDispatch()
     const insets = useSafeAreaInsets()
     const [currentViewItem, setCurrentViewItem] = useState([])
     const [openReportModal, setOpenReportModal] = useState(false)
+    const [list, setList] = useState([])
 
+    const [pageConfig, setPageConfig] = useState({
+        page: currentPage + 1,
+        skip: props.route.params.index + videoWallList.length - 10
+    })
+
+    useEffect(() => {
+        hideNavigationBar()
+        return () => {
+            showNavigationBar()
+        }
+    }, [])
+
+    useEffect(() => {
+        setList(list.concat(videoWallList))
+    }, [videoWallList])
+
+    useEffect(() => {
+        if (videoWallList.length < 3) {
+            setPageConfig({
+                skip: pageConfig.skip + 10
+            })
+        }
+    }, [])
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false
+            return
+        }
+
+        let params = {
+            limit: 10,
+            skip: pageConfig.skip
+        }
+        dispatch(getVideoWall(params))
+    }, [pageConfig])
 
     useLayoutEffect(() => {
         const reportVideo = () => {
@@ -72,25 +120,41 @@ const VideoList = (props) => {
         setCurrentViewItem(viewableItems)
     }, [])
 
-    // alert(StatusBar.currentHeight)
+    const onScrollEnd = (e) => {
+        let contentOffset = e.nativeEvent.contentOffset;
+        let viewSize = e.nativeEvent.layoutMeasurement;
+
+        let pageNum = Math.floor(contentOffset.y / viewSize.height);
+
+        if (pageNum === list.length - 2) {
+            setPageConfig({
+                skip: pageConfig.skip + 10
+            })
+        }
+    }
+
     return (
         <View style={styles.container}>
+            <StatusBar translucent backgroundColor="transparent" />
             <FlatList
-                data={exploreVideoList}
+                data={list}
                 style={{
-                    height: hp("100%")
+                    // height: hp("100%")
                 }}
+                bounces={false}
                 snapToAlignment="start"
                 pagingEnabled
                 decelerationRate='fast'
-                initialScrollIndex={props.route.params.index}
+                // initialScrollIndex={props.route.params.index}
                 initialNumToRender={1}
-                windowSize={1}
+                windowSize={3}
+                removeClippedSubviews={true}
                 getItemLayout={(_, index) => (
                     { length: ORIGINAL_HEIGHT, offset: ORIGINAL_HEIGHT * index, index }
                 )}
                 viewabilityConfig={viewabilityConfig}
                 onViewableItemsChanged={onViewableItemsChanged}
+                onMomentumScrollEnd={onScrollEnd}
                 keyExtractor={(item, index) => item._id}
                 renderItem={(item) => <VideoListItem {...item} currentViewItem={currentViewItem}
                     videoContainerStyle={{

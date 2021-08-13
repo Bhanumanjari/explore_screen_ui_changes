@@ -1,3 +1,6 @@
+import { Platform } from "react-native";
+import { rewardAdAndroid, rewardAdiOS } from "./constant";
+import { showNavigationBar, hideNavigationBar } from 'react-native-navigation-bar-color';
 
 /**
  * 
@@ -51,3 +54,23 @@ export function validatePhoneNumber(phoneNumber) {
     const phoneNumberRegX = /[0-9]{10}$/
     return phoneNumberRegX.test(phoneNumber)
 }
+
+/**
+ * 
+ * @returns // return the reward ads key based on device type
+ */
+export function getRewardAdsId() {
+    if (Platform.OS === 'ios') {
+        return rewardAdiOS
+    } else {
+        return rewardAdAndroid
+    }
+}
+
+showNavigation = () => {
+    showNavigationBar();
+};
+
+hideNavigation = () => {
+    hideNavigationBar();
+};

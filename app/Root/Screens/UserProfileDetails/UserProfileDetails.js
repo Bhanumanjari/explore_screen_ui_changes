@@ -2,32 +2,44 @@ import React, { } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useLayoutEffect } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, View, Image } from "react-native";
 import FastImage from "react-native-fast-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { connect } from "react-redux";
-import { req_user } from "../../../assets";
+import { menu_dot, req_user } from "../../../assets";
 import { TextView } from "../../../Component";
 import BackButton from "../../../Component/BackButton";
 import { EmptyList } from "../../../Component/EmptyList";
 import FaceSwapReqModal from "../../../Component/FaceSwapReqModal";
 import { MyHellosLoader } from "../../../ShimmerEffects/MyHellosLoader";
 import { UserProfileDetailLoader } from "../../../ShimmerEffects/ProfileLoaders";
-import { getUserProfileById, getUserVideos, saveProfile, saveUserProfile, setUserProfileLoader } from "../../../store/profile";
+import { blockUnblock, getUserProfileById, getUserVideos, saveProfile, saveUserProfile, setUserProfileLoader } from "../../../store/profile";
 import { sentRequest } from "../../../store/video";
 import { color, font } from "../../../Theme";
 import { PixcelWidth, showBottomToast } from "../../../Utils";
 import HellosListItem from "./HellosListItem";
-
+import ActionSheet from "../../../Component/ActionSheet";
+import { setProfile } from "../../../store/login";
+import { useRef } from "react";
 
 function UserProfileDetails(props) {
+
+    const isBlock = useRef()
     const [userInfo, setUserInfo] = useState(props.route.params.data)
     const [isSwapeReqModalVisible, setIsSwapReqModalVisible] = useState(false)
+    const [showActionSheet, setShowActionSheet] = useState(false)
     const [selectedHello, setSelectedHello] = useState({})
+    const [actionList, setActionList] = useState(["Block"])
+
     useLayoutEffect(() => {
         props.navigation.setOptions({
             headerShown: true,
             headerLeft: () => <BackButton />,
+            headerRight: () =>
+                <Pressable onPress={() => setShowActionSheet(true)}>
+                    <Image source={menu_dot} style={styles.menuImage} resizeMode="contain" />
+                </Pressable>
+            ,
             title: ''
         })
         return () => {
@@ -36,8 +48,19 @@ function UserProfileDetails(props) {
     }, [props.navigation])
 
     useEffect(() => {
-        if (props.userDetails._id)
+        let blocked = props.user?.blocked ?? []
+        isBlock.current = blocked.includes(userInfo._id)
+        if (isBlock.current) {
+            setActionList(["Un Block"])
+        } else {
+            setActionList(["Block"])
+        }
+    }, [props.user])
+
+    useEffect(() => {
+        if (props.userDetails._id) {
             setUserInfo(props.userDetails)
+        }
     }, [props.userDetails])
 
     useEffect(() => {
@@ -46,14 +69,14 @@ function UserProfileDetails(props) {
     }, [])
 
     const onItemPress = (item, index) => {
-        if (item.isPublic) {
-            props.navigation.navigate('VideoDetailsScreen', {
-                ...item
-            })
-        } else {
-            setSelectedHello(item)
-            setIsSwapReqModalVisible(true)
-        }
+        props.navigation.navigate('VideoDetailsScreen', {
+            ...item
+        })
+        // if (item.isPublic) {
+        // } else {
+        //     setSelectedHello(item)
+        //     setIsSwapReqModalVisible(true)
+        // }
     }
 
     const onSend = () => {
@@ -69,6 +92,24 @@ function UserProfileDetails(props) {
         })
     }
 
+    const onSelect = (index) => {
+        if (index === 0) {
+            console.log(userInfo)
+            let data = {
+                userId: userInfo._id
+            }
+            data.type = isBlock.current ? "unblock" : "block"
+            props.blockUnblock(data, onResponse)
+        }
+    }
+
+    const onResponse = (res) => {
+        console.log(res)
+        if (res) {
+            showBottomToast(`User successfully ${isBlock.current ? "unblocked" : "blocked"}`)
+        }
+    }
+
     return (
         <>
             <FaceSwapReqModal
@@ -77,6 +118,14 @@ function UserProfileDetails(props) {
                 onSend={onSend}
                 data={userInfo}
             />
+
+            <ActionSheet
+                visible={showActionSheet}
+                actionList={actionList}
+                toggle={() => setShowActionSheet(!showActionSheet)}
+                onSelect={onSelect}
+            />
+
             <ScrollView style={styles.container}>
                 <React.Fragment>
                     <React.Fragment>
@@ -231,6 +280,14 @@ const styles = StyleSheet.create({
         fontSize: PixcelWidth(25),
         color: color.txt_white,
     },
+    menuImage: {
+        marginHorizontal: 10,
+        marginVertical: 15,
+        width: 24,
+        transform: [{
+            rotate: "90deg"
+        }]
+    },
 })
 
 const mapStateToProps = (state) => ({
@@ -238,6 +295,7 @@ const mapStateToProps = (state) => ({
     isUserProfileLoading: state.profile.isUserProfileLoading,
     userVideos: state.profile.userVideos,
     isUserVideoLoading: state.profile.isUserVideoLoading,
+    user: state.login.data,
 })
 
 const mapDispatchToProps = {
@@ -245,7 +303,9 @@ const mapDispatchToProps = {
     setUserProfileLoader,
     getUserProfileById,
     getUserVideos,
-    sentRequest
+    sentRequest,
+    blockUnblock,
+    setProfile
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(UserProfileDetails)

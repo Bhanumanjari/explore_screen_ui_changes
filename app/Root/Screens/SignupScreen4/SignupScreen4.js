@@ -3,16 +3,9 @@ import { Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import { Container, Header } from 'native-base';
 import styles from './SignupScreen4Style';
-import { TextView, Hbutton, EditTextView, MainHeader } from 'app/Component';
-import { home, award, video, smile, backArrow } from '../../../assets';
-
-import { forgotPassword, loginUser } from 'app/store/login';
-import { color } from '../../../Theme';
+import { TextView, MainHeader } from 'app/Component';
 import {
-  PixcelHeight,
-  PixcelWidth,
   showBottomToast,
-  showToast,
 } from '../../../Utils';
 import { fetchOtp, signUp, verifyOtp } from '../../../Services/authApiServices';
 import { signup } from '../../../store/signUp/actions';
@@ -23,6 +16,7 @@ import { cloneDeep } from 'lodash';
 import { TextInputMask } from 'react-native-masked-text';
 import { secondsToTime } from '../../../Utils/globalFun';
 import AuthContext from '../../../context/AuthContext';
+import analytics from '@react-native-firebase/analytics';
 
 class VerifyPhoneNumber extends Component {
   static contextType = AuthContext
@@ -132,6 +126,9 @@ class VerifyPhoneNumber extends Component {
           this.props.stopLoading();
           this.context.setInitialRouteName("LanguageScreen")
           this.context.setIsSignIn(true)
+          analytics().logSignUp({
+            method: "phone"
+          })
           // this.props.navigation.navigate('LanguageScreen', {
           //   initial: true
           // })

@@ -10,7 +10,7 @@ import { color, font } from "../Theme"
 import { PixcelWidth, showBottomToast } from "../Utils"
 import commonStyle from './../CommonStyle'
 
-const reportTag = ["Nudity", "Violence", "Harassment", "Suicide or Self-Injury", "False Information", "Spam", "Unauthorized Sales", "Hate Speech", "Terrorism", "Voter Interference", "Intellectual property violation"]
+const reportTag = ["Nudity", "Violence", "Harassment", "Suicide or Self-Injury", "False Information", "Spam", "Unauthorized Sales", "Hate Speech", "Terrorism", "Voter Interference", "Intellectual property violation", "Abusive Content"]
 function ReportModal({ visible, toggle, videoId, onSend }) {
     const insets = useSafeAreaInsets()
     const dispatch = useDispatch()
@@ -31,8 +31,8 @@ function ReportModal({ visible, toggle, videoId, onSend }) {
     }
 
     const onResponse = (res) => {
+        setIsReporting(false)
         if(res){
-            setIsReporting(false)
             toggle()
             showBottomToast("Reported successfully")
         }

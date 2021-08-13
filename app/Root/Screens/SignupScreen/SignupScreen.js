@@ -79,7 +79,9 @@ class SignupScreen extends Component {
         return (
             <KeyboardAwareScrollView style={styles.container}>
                 <View>
-                    <MainHeader title={'Register to Hellos'} />
+                    <MainHeader title={'Register to Hellos'} onBackPress={() => {
+                        this.props.navigation.goBack();
+                    }} />
                     <View style={styles.mainLayout}>
                         <View style={{ flexDirection: 'row' }}>
                             <View style={[styles.line, { borderColor: '#4F45BC', width: 10 }]}></View>
@@ -88,7 +90,7 @@ class SignupScreen extends Component {
                         <Image style={styles.users} source={g49} />
 
                         <View style={styles.bottomCont}>
-                            <TextView style={styles.subTxt}>Select an unique Hellos username</TextView>
+                            <TextView style={styles.subTxt}>Please Enter a unique Hellos Username</TextView>
                             <View style={styles.inputCont}>
                                 <View style={styles.inputTxtCont}>
                                     <Image source={award}

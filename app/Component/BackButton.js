@@ -8,18 +8,22 @@ function BackButton({ onBackPress }) {
     const navigation = useNavigation()
     return (
         <>
-            <Pressable onPress={() => {
-                if (onBackPress) {
-                    onBackPress()
-                } else {
-                    navigation.goBack()
-                }
-            }}>
+            <Pressable
+                style={{
+                    paddingVertical: 7,
+                }}
+                onPress={() => {
+                    if (onBackPress) {
+                        onBackPress()
+                    } else {
+                        navigation.goBack()
+                    }
+                }}>
                 <FastImage
                     source={backArrow}
                     style={{
-                        height: 18,
-                        width: 10.5,
+                        height: 20,
+                        width: 12,
                         marginHorizontal: PixcelWidth(20),
                     }}
                 />

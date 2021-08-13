@@ -103,6 +103,16 @@ const styles = StyleSheet.create({
         width:PixcelWidth(26),
         tintColor:color.txt_white,
         marginRight:PixcelWidth(12)
+    },
+    acceptTxt: {
+        textAlign: "center",
+        color: color.txt_white,
+        marginHorizontal:20,
+        marginTop: 20
+    },
+    acceptLinkTxt: {
+        color: color.txt_white,
+        textDecorationLine: 'underline'
     }
 
 });

@@ -43,6 +43,8 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import vision, { VisionFaceContourType, VisionFaceDetectorClassificationMode, VisionFaceDetectorContourMode, VisionFaceDetectorLandmarkMode, VisionFaceLandmarkType } from '@react-native-firebase/ml-vision';
 import ImageEditor from "@react-native-community/image-editor";
 import FaceClickTooltip from '../../../Component/FaceClickTooltip';
+import { useLayoutEffect } from 'react';
+import BackButton from "../../../Component/BackButton";
 
 // const TensorCamera = cameraWithTensors(Camera);
 
@@ -64,7 +66,7 @@ const PhotoClick = (props) => {
   let camera = useRef(null)
   // const [camera, setCamera] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [imageSize, setImageSize] = useState(200);
+  const [imageSize, setImageSize] = useState(1000);
   const [image, setImage] = useState('');
   const [isImageCaptured, setIsImageCaptured] = useState(false);
   const [isProccessing, setIsProccessing] = useState(false);
@@ -89,6 +91,15 @@ const PhotoClick = (props) => {
   //     setHasPermission(status === 'granted');
   //   })();
   // }, []);
+
+  useLayoutEffect(() => {
+    props.navigation.setOptions({
+      title: '',
+      headerLeft: () => <BackButton onBackPress={skip} />,
+      headerShown: true,
+      headerTransparent: true,
+    })
+  },[props.navigation])
 
   const makeDirectory = async () => {
     await RNFS.mkdir(imagePath);
@@ -148,6 +159,7 @@ const PhotoClick = (props) => {
       )}.jpg`;
       const data = await camera.current.takePictureAsync({
         imageType: 'jpg',
+        // width: inputTensorWidth,
       });
 
       setIsProccessing(true)
@@ -156,14 +168,18 @@ const PhotoClick = (props) => {
       setImage(data);
       // camera.pausePreview()
       // cancelAnimationFrame(rafID.current);
+
+      // console.log(data)
+      // croppedImage.current = data
+      // processFaces(data.uri)
       ImageResizer.createResizedImage(data.uri, inputTensorWidth, inputTensorHeight, 'JPEG', 100, 0, undefined, false, {
-        mode: 'contain',
+        mode: 'stretch',
         onlyScaleDown: false
       }).then(res => {
+        console.log(res)
         croppedImage.current = res
         processFaces(res.uri)
       })
-
 
     } catch (err) {
       console.log('err: ', err);
@@ -228,44 +244,15 @@ const PhotoClick = (props) => {
     let arr = image?.uri?.split('/') ?? [`${moment().format('MMDDYYYYhhmmssSSS')}.jpg`]
     let fileName = arr.pop()
 
-    // ImageResizer.createResizedImage(image.uri, imageSize, imageSize, 'JPEG', 100, 0, undefined, false, {
-    //   mode: 'contain',
-    //   onlyScaleDown: true
-    // }).then(res => {
-    //   // console.log(res)
-    //   formData.append('faceFile', {
-    //     uri: res.uri,
-    //     type: 'image/jpg',
-    //     name: res.name //fileName //`${moment().format('MMDDYYYYhhmmssSSS')}.jpg`,
-    //   });
-    //   props.update(formData, {
-    //     onSuccess: () => {
-    //       navigate();
-    //     },
-    //     onError: () => { },
-    //   });
-    // }).catch(err => {
-    //   console.log(err)
-    // })
-
-
-    // const detectedFaces = await vision().faceDetectorProcessImage(image.uri);
-    const boundingBox = faces[0]?.boundingBox
-
-    const width = boundingBox[2] - boundingBox[0] + 20
-    const height = boundingBox[3] - boundingBox[1] + 30
-
-    const cropData = {
-      offset: { x: boundingBox[0] - 10, y: boundingBox[1] - 20 },
-      size: { width, height },
-    };
-
-    ImageEditor.cropImage(croppedImage.current?.uri, cropData).then(url => {
-      console.log("Cropped image uri", url);
+    ImageResizer.createResizedImage(image.uri, imageSize, imageSize, 'JPEG', 100, 0, undefined, false, {
+      mode: 'contain',
+      onlyScaleDown: true
+    }).then(res => {
+      // console.log(res)
       formData.append('faceFile', {
-        uri: url,
+        uri: res.uri,
         type: 'image/jpg',
-        name: `${moment().format('MMDDYYYYhhmmssSSS')}.jpg`,
+        name: res.name //fileName //`${moment().format('MMDDYYYYhhmmssSSS')}.jpg`,
       });
       props.update(formData, {
         onSuccess: () => {
@@ -276,6 +263,35 @@ const PhotoClick = (props) => {
     }).catch(err => {
       console.log(err)
     })
+
+
+    // const detectedFaces = await vision().faceDetectorProcessImage(image.uri);
+    // const boundingBox = faces[0]?.boundingBox
+
+    // const width = boundingBox[2] - boundingBox[0] + 20
+    // const height = boundingBox[3] - boundingBox[1] + 30
+
+    // const cropData = {
+    //   offset: { x: boundingBox[0] - 10, y: boundingBox[1] - 20 },
+    //   size: { width, height },
+    // };
+
+    // ImageEditor.cropImage(croppedImage.current?.uri, cropData).then(url => {
+    //   console.log("Cropped image uri", url);
+    //   formData.append('faceFile', {
+    //     uri: url,
+    //     type: 'image/jpg',
+    //     name: `${moment().format('MMDDYYYYhhmmssSSS')}.jpg`,
+    //   });
+    //   props.update(formData, {
+    //     onSuccess: () => {
+    //       navigate();
+    //     },
+    //     onError: () => { },
+    //   });
+    // }).catch(err => {
+    //   console.log(err)
+    // })
   };
 
   const navigate = () => {
@@ -309,13 +325,15 @@ const PhotoClick = (props) => {
       setIsProccessing(true)
       setIsImageCaptured(true);
       setIsCameraClick(false);
-      setImage(image);
+      setImage(image[0]);
       // camera.pausePreview()
       // cancelAnimationFrame(rafID.current);
-      ImageResizer.createResizedImage(image.uri, inputTensorWidth, inputTensorHeight, 'JPEG', 100, 0, undefined, false, {
+      // console.log(image[0])
+      ImageResizer.createResizedImage(image[0].uri, inputTensorWidth, inputTensorHeight, 'JPEG', 100, 0, undefined, false, {
         mode: 'stretch',
         onlyScaleDown: false
       }).then(res => {
+        console.log(res)
         croppedImage.current = res
         processFaces(res.uri)
       }).catch(err => {
@@ -597,12 +615,14 @@ const PhotoClick = (props) => {
       const edgeWidth = width / 4
       const fullEdgeWidth = edgeWidth * 2
 
+      console.log(croppedImage)
       return <Rect
         key={fIndex}
         x={boundingBox[0]}
         y={boundingBox[1]}
         strokeWidth={2}
         stroke={color.btnPrimary_color}
+        // scaleX={-1}
         width={width}
         height={height}
         strokeDasharray={[edgeWidth, width - fullEdgeWidth, fullEdgeWidth, height - fullEdgeWidth, fullEdgeWidth, width - fullEdgeWidth, fullEdgeWidth, height - fullEdgeWidth]}
@@ -657,6 +677,7 @@ const PhotoClick = (props) => {
           type={'front'}
           flashMode='off'
           captureAudio={false}
+          ratio={"1:1"}
           androidCameraPermissionOptions={{
             title: 'Permission to use camera',
             message: 'We need your permission to use your camera',
@@ -685,9 +706,10 @@ const PhotoClick = (props) => {
           }>
           <FastImage style={styles.roundContainer} source={eclipsIcon} />
         </RNCamera> :
+        <>
           <FastImage
-            resizeMode={FastImage.resizeMode.contain}
-            style={{ flex: 1, transform: [{ scaleX: (Platform.OS === 'android' && isCameraClick) ? -1 : 1 }] }} // transform: [{ scaleX: (Platform.OS === 'android' && isCameraClick) ? -1 : 1 }]
+            resizeMode={FastImage.resizeMode.cover}
+            style={{ flex: 1, transform: [{ scaleX: isCameraClick ? -1 : 1 }] }} // transform: [{ scaleX: isCameraClick ? 1 : 1 }]
             source={{
               uri: image.uri
             }}
@@ -699,7 +721,9 @@ const PhotoClick = (props) => {
               height={PixcelWidth(317)}
               lineAnimationDuration={1000}
             /> : renderFaceBox()}
-          </FastImage>}
+          </FastImage>
+          </>
+          }
         {/* <TensorCamera
           // Standard Camera props
           style={styles.cameraContainer}
@@ -825,11 +849,11 @@ const PhotoClick = (props) => {
           <View style={{ width: '100%' }} />
         ) : (
           <View style={{ width: '100%' }}>
-            <Image
+            {/* <Image
               style={{ alignSelf: 'center' }}
               source={photoClickText}
               resizeMode="contain"
-            />
+            /> */}
             <View style={styles.btnContainer}>
               <Pressable onPress={retake} style={styles.btnSkip}>
                 <TextView style={styles.retakeTxt}>Retake</TextView>
@@ -867,6 +891,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
     bottom: 0,
+    paddingBottom: 10
   },
   roundContainer: {
     width: PixcelWidth(217),

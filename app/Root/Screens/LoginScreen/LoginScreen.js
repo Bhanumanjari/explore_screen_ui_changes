@@ -1,4 +1,4 @@
-import { Image, Platform, Pressable, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Keyboard, Platform, Pressable, TextInput, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 import React, { Component } from 'react';
 import { Container, Content, Footer } from 'native-base';
@@ -13,6 +13,10 @@ import { showBottomToast } from '../../../Utils';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AuthContext from '../../../context/AuthContext';
 import { requestTrackingPermission } from 'react-native-tracking-transparency';
+import CountryCodeModal from '../../../Component/CountryCodeModal';
+import { ScrollView } from 'react-native-gesture-handler';
+import analytics from '@react-native-firebase/analytics';
+import CountryPicker from 'react-native-country-picker-modal'
 
 class LoginScreen extends Component {
 
@@ -23,56 +27,62 @@ class LoginScreen extends Component {
             email: '',
             phoneNumber: '',
             password: "",
-            isPasswordVisible: false
+            countryCode: "+91",
+            countryFlag: "IN",
+            isPasswordVisible: false,
+            showCountryCodeModal: false,
+            isKeyboardOpen: false
         };
     }
 
     componentDidMount = async () => {
-        if(Platform.OS === 'ios'){
+        if (Platform.OS === 'ios') {
             const trackingStatus = await requestTrackingPermission();
         }
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow);
+        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide);
+    }
+
+    _keyboardDidShow = () => {
+        this.setState({
+            isKeyboardOpen: true
+        })
+    }
+
+    _keyboardDidHide = () => {
+        this.setState({
+            isKeyboardOpen: false
+        })
+    }
+
+    componentWillUnmount = () => {
+        this.keyboardDidShowListener && this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
     }
 
     login = () => {
 
-        // if (this.state.email === '') {
-        //     showBottomToast("Email is required")
-        //     return
-        // }
         if (this.state.phoneNumber === '') {
             showBottomToast("Mobile number is required")
             return
         }
-
-        // if (!validateEmail(this.state.email)) {
-        //     showBottomToast("Invalid username/email")
-        //     return
-        // }
 
         if (this.state.password === "") {
             showBottomToast("Password is required")
             return
         }
 
+        console.log(this.state.phoneNumber, this.state.countryCode, this.state.password)
         this.props.loginUser({
             phoneNumber: this.state.phoneNumber,
-            countryCode: "+91",
+            countryCode: this.state.countryCode,
             password: this.state.password
         }, {
-            onSuccess: (userData) => {
-                // if (!userData.isEmailVerified) {
-                //     this.props.navigation.navigate('VerifyEmail')
-                // }
-                // else
-                // if (!userData.isPhoneVerified) {
-                //     this.props.navigation.navigate('VerifyPhoneNumber')
-                // } else {
+            onSuccess: (_) => {
                 this.context.setIsSignIn(true)
-                // this.props.navigation.reset({
-                //     index: 0,
-                //     routes: [{ name: 'DashboardScreen' }],
-                // });
-                // }
+                analytics().logLogin({
+                    method: "phone"
+                })
             },
             onError: () => {
 
@@ -80,10 +90,18 @@ class LoginScreen extends Component {
         })
     }
 
+    onSelect = (country) => {
+        console.log(country)
+        this.setState({
+            countryFlag: country.cca2,
+            countryCode: "+" + country.callingCode[0]
+        })
+    }
+
     render() {
         return (
-            <Container>
-                <KeyboardAwareScrollView showsVerticalScrollIndicator={false} style={{ backgroundColor: color.primary_color, }}>
+            <View style={{ flex: 1 }}>
+                <KeyboardAwareScrollView enableOnAndroid showsVerticalScrollIndicator={false} style={{ backgroundColor: color.primary_color, flex: 1 }}>
                     <View style={styles.mainLayout}>
                         <TextView style={styles.subTxt}>Here to Get</TextView>
                         <TextView style={styles.titleTxt}>Welcomed!</TextView>
@@ -94,6 +112,19 @@ class LoginScreen extends Component {
                         />
                         {/*<View style={styles.line}></View>*/}
                         <View style={styles.inputTxtCont}>
+                            <View style={{ marginLeft: 20 }} >
+                                {/* <TextView style={{ color: "white" }}>{this.state.countryFlag}</TextView> */}
+                                <CountryPicker
+                                    {...{
+                                        countryCode: this.state.countryFlag,
+                                        withFilter: true,
+                                        withFlag: true,
+                                        withCountryNameButton: false,
+                                        withCallingCode: true,
+                                        onSelect: this.onSelect,
+                                    }}
+                                />
+                            </View>
                             <TextInput
                                 style={styles.inputTxt}
                                 placeholder="Enter mobile no."
@@ -149,24 +180,40 @@ class LoginScreen extends Component {
 
                     </View>
                 </KeyboardAwareScrollView>
-                <Footer style={{ backgroundColor: '#20292D', }}>
-                    <View style={styles.bottom}>
-                        <View style={styles.bottomCont}>
-                            <View style={styles.declineBtn}>
-                                <TextView style={styles.declineBtnTxt}>New Here? </TextView>
-                            </View>
-                            <TouchableOpacity onPress={() => {
-                                this.props.navigation.navigate('InfoScreen')
-                            }} style={styles.joinBtn}
+                {/* <Footer style={{ backgroundColor: '#20292D', }}> */}
 
-                            >
-                                <TextView style={styles.joinBtnTxt}>JOIN HELLOS</TextView>
-                            </TouchableOpacity>
+                {/* </Footer> */}
+                {!this.state.isKeyboardOpen ? <View style={styles.bottom}>
+                    <View style={styles.bottomCont}>
+                        <View style={styles.declineBtn}>
+                            <TextView style={styles.declineBtnTxt}>New Here? </TextView>
                         </View>
-                    </View>
+                        <TouchableOpacity onPress={() => {
+                            this.props.navigation.navigate('InfoScreen')
+                        }} style={styles.joinBtn}
 
-                </Footer>
-            </Container>
+                        >
+                            <TextView style={styles.joinBtnTxt}>JOIN HELLOS</TextView>
+                        </TouchableOpacity>
+                    </View>
+                </View> : null}
+
+
+                {/* <CountryCodeModal visible={this.state.showCountryCodeModal} toggle={() => {
+                    this.setState({
+                        showCountryCodeModal: !this.state.showCountryCodeModal
+                    })
+                }}
+                    onSelectCountryCode={(country) => {
+                        this.setState({
+                            countryCode: country.code,
+                            countryFlag: country.flag,
+                        })
+                    }}
+                /> */}
+
+
+            </View>
         );
     }
 }

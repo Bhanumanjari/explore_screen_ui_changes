@@ -1,5 +1,5 @@
 import { baseApiCall } from "../Config/Api"
-import { DELETE_FACE, UPDATE_PROFILE, SEARCH_PROFILE, GET_LANGUAGES, FEEDBACK } from "../Config/apiEndPoints"
+import { DELETE_FACE, UPDATE_PROFILE, SEARCH_PROFILE, GET_LANGUAGES, FEEDBACK, BLOCK_UNBLOCK_USER } from "../Config/apiEndPoints"
 
 export const updateProfile = (data) => {
     return baseApiCall({
@@ -34,6 +34,14 @@ export const fetchLanguages = () => {
 export const feedback = (data) => {
     return baseApiCall({
         url: `${FEEDBACK}`,
+        method: 'post',
+        data
+    })
+}
+
+export const blockUnblockUser = (data) => {
+    return baseApiCall({
+        url: `${BLOCK_UNBLOCK_USER}`,
         method: 'post',
         data
     })

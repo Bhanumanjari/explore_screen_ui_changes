@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { DocumentDirectoryPath, downloadFile } from 'react-native-fs';
 import Share from 'react-native-share';
+import { logAnalyticsEvent } from '../../Config/analyticsEvent';
 import { requestStoragePermission } from '../../Config/permissions';
 import { getVideoList } from '../../Services/homeServices';
 import {
@@ -32,10 +33,12 @@ import {
   SAVE_REQUEST_SENT_VIDEO,
   SAVE_SAVED_VIDEO,
   SAVE_SWAPE_VIDEO_DATA,
+  SAVE_VIDEO_WALL_DATA,
   SET_EXPLORE_VIDEO_LOADER,
   SET_LIKE_VIDEO_LOADER,
   SET_REQUEST_RECEIVED_LOADER,
   SET_REQUEST_SENT_LOADER,
+  SET_REQUEST_VIDEO_WALL,
   SET_SAVE_VIDEO_LOADER,
 } from './actionTypes';
 
@@ -61,9 +64,15 @@ export const likeVideoAction = (id, data, callback = () => { }) => {
       .then((res) => {
         if (res) {
           callback(true);
-          if(data.op === 'add'){
+          if (data.op === 'add') {
+            logAnalyticsEvent("like_video", {
+              id: id
+            })
             showBottomToast("You liked video!")
-          }else {
+          } else {
+            logAnalyticsEvent("unlike_video", {
+              id: id
+            })
             showBottomToast("Video disliked")
           }
         }
@@ -75,14 +84,19 @@ export const likeVideoAction = (id, data, callback = () => { }) => {
 };
 export const saveVideoAction = (id, data, callback = () => { }) => {
   return (dispatch) => {
-    console.log(data);
     saveVideo(id, data)
       .then((res) => {
         if (res) {
           callback(true);
-          if(data.op === 'add'){
+          if (data.op === 'add') {
+            logAnalyticsEvent("save_video", {
+              id: id
+            })
             showBottomToast("Video added in saved collection")
-          }else {
+          } else {
+            logAnalyticsEvent("remove_video", {
+              id: id
+            })
             showBottomToast("Video removed from saved collection")
           }
         }
@@ -124,13 +138,27 @@ export const getSavedVideo = (data) => {
 export const getExploreVideo = (params = '') => {
 
   return (dispatch, getState) => {
-    const hasList = getState().video.exploreVideoList.length > 0
-    if(!hasList) dispatch(setExploreVideoLoader(true))
 
-    params = `?sortBy=popular&${params}`
+    // const list = getState().video.exploreVideoList
+    // if(!hasList) 
 
-    getVideoList(params, getState).then(res => {
-      dispatch(saveExploreVideos(res))
+    dispatch(setExploreVideoLoader(true))
+
+    let query = '?sortBy=popular'
+    Object.keys(params).forEach((key, index) => {
+      query += `&${key}=${params[key]}`
+    })
+
+    getVideoList(query, getState).then(res => {
+      if (!params.skip || params.skip === 0) {
+        dispatch(saveExploreVideos(res))
+      } else {
+        if (res.length > 0) {
+          dispatch(saveExploreVideos(res))
+        } else {
+          dispatch(setExploreVideoLoader(false))
+        }
+      }
     }).catch(err => {
       dispatch(setExploreVideoLoader(false))
     })
@@ -143,6 +171,9 @@ export const shareVideoAction = (id, data, callback = () => { }) => {
     shareVideo(id, data)
       .then((res) => {
         if (res) {
+          logAnalyticsEvent("share_video", {
+            id
+          })
           callback(true);
         }
       })
@@ -265,7 +296,7 @@ export const swapVideo = (data, cancelToken) => {
   };
 };
 
-export const shareVideoOnSocial = (_id ,video, callback = () => {}) => {
+export const shareVideoOnSocial = (_id, video, callback = () => { }) => {
   return async (dispatch) => {
     const options = {
       fromUrl: video.original,
@@ -287,7 +318,7 @@ export const shareVideoOnSocial = (_id ,video, callback = () => {}) => {
         await delay(500)
         const response = await Share.open({
           title: 'Share hello',
-          message: `helloface://hello/${_id}`,
+          // message: `helloface://hello/${_id}`,
           url: `file://${DocumentDirectoryPath}/share_${video.fileName}`,
           type: "video/mp4"
         })
@@ -303,6 +334,23 @@ export const shareVideoOnSocial = (_id ,video, callback = () => {}) => {
     })
   };
 };
+
+export const getVideoWall = (params = '') => {
+
+  return (dispatch, getState) => {
+
+    let query = '?sortBy=popular'
+    Object.keys(params).forEach((key, index) => {
+      query += `&${key}=${params[key]}`
+    })
+
+    getVideoList(query, getState).then(res => {
+      dispatch(saveVideoWall(res))
+    }).catch(err => {
+    })
+  }
+
+}
 
 export const saveLikedVideo = (payload) => {
   return {
@@ -377,6 +425,20 @@ export const setRequestReceivedVideoLoader = (payload) => {
 export const saveSwapVideo = (payload) => {
   return {
     type: SAVE_SWAPE_VIDEO_DATA,
+    payload,
+  };
+};
+
+export const setRequestVideoWall = (payload) => {
+  return {
+    type: SET_REQUEST_VIDEO_WALL,
+    payload,
+  };
+};
+
+export const saveVideoWall = (payload) => {
+  return {
+    type: SAVE_VIDEO_WALL_DATA,
     payload,
   };
 };

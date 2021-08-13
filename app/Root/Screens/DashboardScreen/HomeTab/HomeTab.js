@@ -1,20 +1,16 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
-  Image,
-  Pressable,
   RefreshControl,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Body, Container, Content, Header, Left, Right } from 'native-base';
 import styles from './HomeTabStyle';
 import { filter, find } from 'app/assets';
 import { color } from 'app/Theme';
-import { PixcelWidth } from '../../../../Utils';
+import { deviceWidth, PixcelWidth } from '../../../../Utils';
 import RowItem from './TrendingRowItem';
 import ForyouRowItem from './ForyouRowItem';
 import { SearchRowItem } from 'app/Component';
@@ -42,32 +38,105 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchUserProfile } from '../../../../store/login';
 import InAppReview from 'react-native-in-app-review'
 import AuthContext from '../../../../context/AuthContext';
+import { useContext } from 'react';
+import { useState } from 'react';
+import { useLayoutEffect } from 'react';
+import { useRef } from 'react';
+import CategoryItem from '../../../../Component/CategoryItem';
+import analytics from '@react-native-firebase/analytics';
 
 // const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
-class HomeTab extends Component {
-  static contextType = AuthContext
-  constructor(props) {
-    super();
-    this.state = {
-      selectedCategoryIndex: -1,
-      isRefreshing: false
-    };
-  }
+const HomeTab = (props) => {
+  const authContext = useContext(AuthContext)
+  const dispatch = useDispatch()
 
-  componentDidMount = () => {
-    this.props.setAuthCallback(this.context.setIsSignIn)
-    this.props.getCategoryList('', true);
-    this.props.fetchUserProfile();
-    if (InAppReview.isAvailable()) {
-      // this.triggerAppReview()
-    }
-    this.setHeader()
-    this._unsubscribeFocus = this.props.navigation.addListener('focus', () => {
-      this.loadData()
+  const allCategory = useRef({
+    name: "All",
+    _id: 'all_explore_video'
+  })
+
+  const scrollDirection = useRef()
+
+  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [categoryVideoConfig, setCategoryVideoConfig] = useState({
+    page: 0,
+  })
+  const [categoryVideoList, setCategoryVideoList] = useState([])
+
+  useEffect(() => {
+    dispatch(setAuthCallback(authContext.setIsSignIn))
+    dispatch(getCategoryList('', true))
+    dispatch(fetchUserProfile())
+  }, [])
+
+  useLayoutEffect(() => {
+    props.navigation.setOptions({
+      header: () => {
+        const insets = useSafeAreaInsets()
+        return (
+          <View style={{ flexDirection: 'row', backgroundColor: color.primary_color, paddingTop: insets.top }}>
+            {/* <View style={styles.inputTxtCont}>
+              <Pressable
+                onPress={() => {
+                  redirectToSearchedList()
+                }}
+                style={styles.searchContainer}>
+                <TextView
+                  style={styles.searchHereText}>
+                  Search here
+                </TextView>
+              </Pressable>
+              <TouchableOpacity onPress={redirectToSearchedList} style={styles.find}>
+                <Image style={styles.findIcon} source={find} />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => {
+              redirectToSearch()
+            }} style={styles.filter}>
+              <Image style={styles.filterIcon} source={filter} />
+            </TouchableOpacity> */}
+          </View>
+        )
+      }
     })
-  };
+  }, [props.navigation])
 
-  triggerAppReview = () => {
+  useEffect(() => {
+    const _unsubscribeFocus = props.navigation.addListener('focus', () => {
+      loadData()
+    })
+
+    return () => {
+      _unsubscribeFocus()
+    }
+  }, [])
+
+  useEffect(() => {
+    analytics().setUserProperty("username", props.login.username)
+  }, [])
+
+  useEffect(() => {
+    let params = {
+      limit: 10,
+      skip: (categoryVideoConfig.page) * 10,
+    }
+    if (categoryVideoConfig.categoryId) {
+      params.categoryId = categoryVideoConfig.categoryId
+    }
+
+    dispatch(getCategoryVideoList(params))
+  }, [categoryVideoConfig])
+
+  useEffect(() => {
+    if (categoryVideoConfig.page === 0) {
+      setCategoryVideoList(props.categoryVideoList)
+    } else {
+      setCategoryVideoList(categoryVideoList.concat(props.categoryVideoList))
+    }
+  }, [props.categoryVideoList])
+
+  const triggerAppReview = () => {
     InAppReview.RequestInAppReview()
       .then((hasFlowFinishedSuccessfully) => {
         // when return true in android it means user finished or close review flow
@@ -107,92 +176,118 @@ class HomeTab extends Component {
       });
   }
 
-  loadData = (isRefreshing = false) => {
-    this.setState({ selectedCategoryIndex: -1, isRefreshing })
-    this.props.getForMeVideo('?forme=true');
-    this.props.getTrendingVideo('?isTrending=true');
-    this.props.getCategoryVideoList();
-  }
-
-  componentWillUnmount = () => {
-    this._unsubscribeFocus && this._unsubscribeFocus()
-  }
-
-  onCategorySelect = (category, index) => {
-    this.setState({
-      selectedCategoryIndex: index
+  const loadData = (isRefreshing = false) => {
+    setSelectedCategoryIndex(0)
+    setIsRefreshing(isRefreshing)
+    dispatch(getForMeVideo('?forme=true'))
+    dispatch(getTrendingVideo('?isTrending=true'))
+    // dispatch(getCategoryVideoList(`?limit=10&skip=0`))
+    setCategoryVideoConfig({
+      page: 0
     })
-    this.props.getCategoryVideoList(`?categoryId=${category._id}`);
+  }
+
+  const onCategorySelect = (category, index) => {
+    setSelectedCategoryIndex(index)
+    if (index === 0) {
+      setCategoryVideoConfig({
+        page: 0,
+      })
+    } else {
+      setCategoryVideoConfig({
+        page: 0,
+        categoryId: category._id
+      })
+    }
+    // let params = {
+    //   categoryId: category._id
+    // }
+    // setCategoryVideoList([])
+    // dispatch(getCategoryVideoList(params))
   };
 
-  onVideoSelect = (item) => { };
+  const onVideoSelect = (item) => { };
 
-  redirectToSearch = () => {
-    this.props.setFilterStatus(false)
-    this.props.navigation.navigate('SearchStack');
-  }
-  redirectToSearchedList = () => {
-    this.props.setFilterStatus(true)
-    this.props.searchVideoByText()
-    this.props.setSearchQuery('')
-    this.props.fetchProfiles(`?search=`)
-    this.props.navigation.navigate('SearchStack');
+  const redirectToSearch = () => {
+    dispatch(setFilterStatus(false))
+    props.navigation.navigate('SearchStack');
   }
 
-  setHeader = () => {
-    this.props.navigation.setOptions({
-      header: () => {
-        const insets = useSafeAreaInsets()
-        return (
-          <View style={{ flexDirection: 'row', backgroundColor: color.primary_color, paddingTop: insets.top }}>
-            <View style={styles.inputTxtCont}>
-              <Pressable
-                onPress={() => {
-                  this.redirectToSearchedList()
-                }}
-                style={styles.searchContainer}>
-                <TextView
-                  style={styles.searchHereText}>
-                  Search here
-                </TextView>
-              </Pressable>
-              <TouchableOpacity onPress={this.redirectToSearchedList} style={styles.find}>
-                <Image style={styles.findIcon} source={find} />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={() => {
-              this.redirectToSearch()
-            }} style={styles.filter}>
-              <Image style={styles.filterIcon} source={filter} />
-            </TouchableOpacity>
-          </View>
-        )
-      }
-    })
+  const redirectToSearchedList = () => {
+    dispatch(setFilterStatus(true))
+    dispatch(searchVideoByText())
+    dispatch(setSearchQuery(''))
+    dispatch(fetchProfiles(`?search=`))
+    props.navigation.navigate('SearchStack');
   }
 
-  render() {
-    return (
-      <Container>
-        <Content
+  const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
+    const paddingToBottom = 70;
+    if (scrollDirection.current && contentOffset.y > scrollDirection.current.y) {
+      scrollDirection.current = contentOffset
+      return layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - paddingToBottom;
+    } else {
+      scrollDirection.current = contentOffset
+      return false
+    }
+  };
+
+  return (
+    <Container>
+      <Content
+        showsVerticalScrollIndicator={false}
+        style={styles.subContainer}
+        contentContainerStyle={{ paddingBottom: 0 }}
+        refreshControl={<RefreshControl
+          refreshing={(props.isTrendingLoading || props.isForMeLoading || props.isCategoryVideoLoading) && isRefreshing}
+          onRefresh={() => loadData(true)}
+          colors={[color.primary_color]}
+          tintColor={color.refresh_control_color}
+        />}
+        onMomentumScrollEnd={({ nativeEvent }) => {
+          if (isCloseToBottom(nativeEvent) && !props.isCategoryVideoLoading) {
+            setCategoryVideoConfig({
+              ...categoryVideoConfig,
+              page: categoryVideoConfig.page + 1
+            })
+          }
+        }}
+        scrollEventThrottle={400}
+      >
+        {!props.isTrendingLoading ? (
+          <TextView style={styles.listtitle}>TRENDING</TextView>
+        ) : (
+          <TextLoader />
+        )}
+        {props.isTrendingLoading ? <TrendingLoader /> : <FlatList
+          horizontal={true}
+          data={props.trendingVideo}
+          contentContainerStyle={{
+            flex: 0,
+            paddingHorizontal: PixcelWidth(15),
+          }}
+          style={styles.flatlistCont}
+          showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
-          style={styles.subContainer}
-          contentContainerStyle={{ paddingBottom: 70 }}
-          refreshControl={<RefreshControl
-            refreshing={(this.props.isTrendingLoading || this.props.isForMeLoading || this.props.isCategoryVideoLoading) && this.state.isRefreshing}
-            onRefresh={() => this.loadData(true)}
-            colors={[color.primary_color]}
-            tintColor={color.refresh_control_color}
-          />}
-        >
-          {!this.props.isTrendingLoading ? (
-            <TextView style={styles.listtitle}>TRENDING</TextView>
-          ) : (
-            <TextLoader />
-          )}
-          {this.props.isTrendingLoading ? <TrendingLoader /> : <FlatList
+          renderItem={({ item }) => <RowItem item={item} />}
+          keyExtractor={(item) => item._id}
+          ListEmptyComponent={() => {
+            if (!props.isTrendingLoading) {
+              return <EmptyList message={'No videos found'} />;
+            }
+            return <></>;
+          }}
+        />}
+        {!props.isForMeLoading ? (
+          <TextView style={styles.listtitle}>FOR YOU</TextView>
+        ) : (
+          <TextLoader />
+        )}
+        {props.isForMeLoading ? <ForMeLoader /> :
+          <FlatList
             horizontal={true}
-            data={this.props.trendingVideo}
+            data={props.forMeVideo}
             contentContainerStyle={{
               flex: 0,
               paddingHorizontal: PixcelWidth(15),
@@ -200,106 +295,92 @@ class HomeTab extends Component {
             style={styles.flatlistCont}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => <RowItem item={item} />}
+            renderItem={({ item }) => (
+              <ForyouRowItem
+                item={item}
+                onVideoSelect={(item) => {
+                  onVideoSelect(item);
+                }}
+              />
+            )}
             keyExtractor={(item) => item._id}
             ListEmptyComponent={() => {
-              if (!this.props.isTrendingLoading) {
+              if (!props.isForMeLoading) {
                 return <EmptyList message={'No videos found'} />;
               }
               return <></>;
             }}
-          />}
-          {!this.props.isForMeLoading ? (
-            <TextView style={styles.listtitle}>FOR YOU</TextView>
-          ) : (
-            <TextLoader />
-          )}
-          {this.props.isForMeLoading ? <ForMeLoader /> :
-            <FlatList
-              horizontal={true}
-              data={this.props.forMeVideo}
-              contentContainerStyle={{
-                flex: 0,
-                paddingHorizontal: PixcelWidth(15),
-              }}
-              style={styles.flatlistCont}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <ForyouRowItem
-                  item={item}
-                  onVideoSelect={(item) => {
-                    this.onVideoSelect(item);
-                  }}
-                />
-              )}
-              keyExtractor={(item) => item._id}
-              ListEmptyComponent={() => {
-                if (!this.props.isForMeLoading) {
-                  return <EmptyList message={'No videos found'} />;
-                }
-                return <></>;
-              }}
-            />
-          }
-          {!this.props.isCategoryLoading ? (
-            <TextView style={styles.listtitle}>BEST CATEGORIES</TextView>
-          ) : (
-            <TextLoader />
-          )}
-          {this.props.isCategoryLoading ? <CategoryLoader /> :
-            <FlatList
-              horizontal={true}
-              data={this.props.categoryList}
-              contentContainerStyle={{
-                flex: 0,
-                paddingHorizontal: PixcelWidth(15),
-              }}
-              style={styles.flatlistCont}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              renderItem={(item) => (
-                <SearchRowItem
-                  {...item}
-                  onCategorySelect={this.onCategorySelect}
-                  selectedCategoryIndex={this.state.selectedCategoryIndex}
-                />
-              )}
-              keyExtractor={(item) => item._id}
-              ListEmptyComponent={() => {
-                if (!this.props.isCategoryLoading) {
-                  return <EmptyList message={'No categories found'} />;
-                }
-                return <></>;
-              }}
-            />
-          }
-          {this.props.isCategoryVideoLoading ? <CategoryVideoLoader /> :
+          />
+        }
+        {!props.isCategoryLoading ? (
+          <TextView style={styles.listtitle}>BEST CATEGORIES</TextView>
+        ) : (
+          <TextLoader />
+        )}
+        {props.isCategoryLoading ? <CategoryLoader /> :
+          <FlatList
+            horizontal={true}
+            data={[allCategory.current].concat(props.categoryList)}
+            contentContainerStyle={{
+              flex: 0,
+              paddingHorizontal: PixcelWidth(15),
+              marginTop: 10
+            }}
+            style={styles.flatlistCont}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            renderItem={(item) => (
+              <CategoryItem
+                {...item}
+                onPressItem={onCategorySelect}
+                selectedIndex={selectedCategoryIndex}
+              />
+            )}
+            keyExtractor={(item) => item._id}
+            ListEmptyComponent={() => {
+              if (!props.isCategoryLoading) {
+                return <EmptyList message={'No categories found'} />;
+              }
+              return <></>;
+            }}
+          />
+        }
+        {props.isCategoryVideoLoading && categoryVideoList.length === 0 ? <CategoryVideoLoader /> :
 
-            <FlatList
-              data={this.props.categoryVideoList}
-              contentContainerStyle={{
-                flex: 0,
-                paddingHorizontal: PixcelWidth(15),
-                paddingVertical: PixcelWidth(20),
-              }}
-              style={styles.flatlistCont}
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              renderItem={(item) => <CategoryListItem {...item} />}
-              keyExtractor={(item) => item._id}
-              ListEmptyComponent={() => {
-                if (!this.props.isCategoryVideoLoading) {
-                  return <EmptyList message={'We are Brewing more content. Please Come Back Later 🙂'} />;
-                }
-                return <></>;
-              }}
-            />
-          }
-        </Content>
-      </Container>
-    );
-  }
+          <FlatList
+            data={categoryVideoList}
+            removeClippedSubviews={true}
+            windowSize={11}
+            initialNumToRender={5}
+            contentContainerStyle={{
+              flex: 0,
+              paddingHorizontal: PixcelWidth(15),
+              paddingVertical: PixcelWidth(20),
+            }}
+            style={styles.flatlistCont}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            renderItem={(item) => <CategoryListItem {...item} />}
+            keyExtractor={(item) => item._id}
+            ListEmptyComponent={() => {
+              if (!props.isCategoryVideoLoading) {
+                return <EmptyList message={'We are Brewing more content. Please Come Back Later 🙂'} />;
+              }
+              return <></>;
+            }}
+            ListFooterComponent={() => {
+              if (props.isCategoryVideoLoading) {
+                return (
+                  <ActivityIndicator color={"#ffffff"} />
+                )
+              }
+              return <></>
+            }}
+          />
+        }
+      </Content>
+    </Container>
+  )
 }
 
 const mapActionCreators = {
@@ -328,4 +409,5 @@ const mapStateToProps = (state) => {
     login: state.login.data,
   };
 };
-export default connect(mapStateToProps, mapActionCreators)(HomeTab);
+
+export default connect(mapStateToProps, null)(HomeTab);

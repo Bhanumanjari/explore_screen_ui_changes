@@ -36,6 +36,9 @@ import { fetchMe } from '../Services/homeServices';
 import { accessToken, isTermsSelected, userData } from '../Utils/storageKeys';
 import { delay } from '../Utils/globalFun';
 import AuthContext from '../context/AuthContext';
+import WebViewComponent from '../Root/Screens/WebView/WebView';
+import { getForMeVideo, getTrendingVideo } from '../store/home';
+import { getAppConfig } from '../store/global';
 
 const Stack = createStackNavigator();
 
@@ -47,6 +50,10 @@ export const Auth = () => {
     const [initialRouteName, setInitialRouteName] = useState(undefined)
 
     useEffect(() => {
+        dispatch(getAppConfig())
+    }, [])
+
+    useEffect(() => {
         getSession()
     }, [])
 
@@ -55,7 +62,6 @@ export const Auth = () => {
             .then((res) => {
                 if (res) {
                     const userData = JSON.parse(res);
-                    console.log(userData);
                     setToken(userData);
                 } else {
                     redirectToLogin();
@@ -88,19 +94,21 @@ export const Auth = () => {
             });
     };
 
-    const redirectToLogin = () => {
-        getData(isTermsSelected).then(res => {
-            if (res && res === 'true') {
-                setInitialRouteName("LoginScreen")
-            } else {
-                setInitialRouteName('TermsScreen')
-            }
-        }).catch(err => {
-            setInitialRouteName('TermsScreen')
-        }).finally(async () => {
-            await delay(1000);
-            setIsLoading(false)
-        })
+    const redirectToLogin = async () => {
+        // getData(isTermsSelected).then(res => {
+        //     if (res && res === 'true') {
+        //         setInitialRouteName("LoginScreen")
+        //     } else {
+        //         setInitialRouteName('TermsScreen')
+        //     }
+        // }).catch(err => {
+        //     setInitialRouteName('TermsScreen')
+        // }).finally(async () => {
+        //     await delay(1000);
+        //     setIsLoading(false)
+        // })
+        await delay(1000);
+        setIsLoading(false)
     };
 
     const setSession = async (userData) => {
@@ -113,6 +121,8 @@ export const Auth = () => {
         }
 
         setIsSignIn(true)
+        dispatch(getForMeVideo('?forme=true'))
+        dispatch(getTrendingVideo('?isTrending=true'))
         await delay(1000);
         setIsLoading(false)
     };
@@ -127,12 +137,12 @@ export const Auth = () => {
     if (isLoading) {
         return <SplashScreen />
     }
-    console.log("Auth:::::::", isSignIn)
+    // console.log("Auth:::::::", isSignIn)
     return (
         <AuthContext.Provider value={authValue}>
 
             {!isSignIn ? <Stack.Navigator
-                initialRouteName={initialRouteName}
+                // initialRouteName={initialRouteName}
                 screenOptions={{
                     headerShown: false,
                 }}
@@ -151,6 +161,10 @@ export const Auth = () => {
                 <Stack.Screen name="OtpScreen" component={OtpScreen} />
                 <Stack.Screen name="SendEmail" component={SendEmailScreen} />
                 <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
+                <Stack.Screen
+                    name="WebViewComponentScreen"
+                    component={WebViewComponent}
+                />
             </Stack.Navigator> :
                 <DashboardTab />
             }

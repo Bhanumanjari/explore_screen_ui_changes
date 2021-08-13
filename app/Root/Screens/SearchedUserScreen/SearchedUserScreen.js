@@ -63,7 +63,8 @@ function SearchedUserScreen(props) {
 
                         <FlatList
                             data={props.profileList}
-                            // data={[]}
+                            removeClippedSubviews={true}
+                            windowSize={11}
                             style={{ marginTop: 15, marginHorizontal: 15 }}
                             showsHorizontalScrollIndicator={false}
                             showsVerticalScrollIndicator={false}
@@ -80,56 +81,56 @@ function SearchedUserScreen(props) {
                             }}
                         />
                     ) : (
-                            <View style={styles.filterContainer}>
-                                <View style={{ marginHorizontal: 20 }}>
-                                    <TextView style={styles.searchTitleTxt}>{'Popular searches'}</TextView>
+                        <View style={styles.filterContainer}>
+                            <View style={{ marginHorizontal: 20 }}>
+                                <TextView style={styles.searchTitleTxt}>{'Popular searches'}</TextView>
+                                {
+                                    props.isPopularUserLoading && <SearchTagLoader />
+                                }
+                                <View style={styles.searchContainer}>
                                     {
-                                        props.isPopularUserLoading && <SearchTagLoader />
+                                        !props.isPopularUserLoading && props.popularUserSearch.length < 1 && <EmptyList message={'No popular searches found'} />
                                     }
-                                    <View style={styles.searchContainer}>
-                                        {
-                                            !props.isPopularUserLoading && props.popularUserSearch.length < 1 && <EmptyList message={'No popular searches found'} />
-                                        }
-                                        {
-                                            props.popularUserSearch.map((search, index) => {
-                                                return (
-                                                    <Pressable onPress={() => {
-                                                        searchByText(search.searchTerm)
-                                                    }} key={index} style={styles.tagContainer}>
-                                                        <TextView style={styles.tagTxt}>{search.searchTerm}</TextView>
-                                                    </Pressable>
-                                                )
-
-                                            })
-                                        }
-                                    </View>
-                                </View>
-                                <View style={{ marginHorizontal: 20 }}>
-                                    <TextView style={styles.searchTitleTxt}>{'Recent searches'}</TextView>
                                     {
-                                        props.isRecentUserLoading && <SearchTagLoader />
+                                        props.popularUserSearch.map((search, index) => {
+                                            return (
+                                                <Pressable onPress={() => {
+                                                    searchByText(search.searchTerm)
+                                                }} key={index} style={styles.tagContainer}>
+                                                    <TextView style={styles.tagTxt}>{search.searchTerm}</TextView>
+                                                </Pressable>
+                                            )
+
+                                        })
                                     }
-                                    <View style={styles.searchContainer}>
-                                        {
-                                            !props.isRecentUserLoading && props.recentUserSearch.length < 1 && <EmptyList message={'No recent searches found'} />
-                                        }
-                                        {
-
-                                            props.recentUserSearch.map((search, index) => {
-                                                return (
-                                                    <Pressable onPress={() => {
-                                                        searchByText(search.searchTerm)
-                                                    }} key={index} style={styles.tagContainer}>
-                                                        <TextView style={styles.tagTxt}>{search.searchTerm}</TextView>
-                                                    </Pressable>
-                                                )
-
-                                            })
-                                        }
-                                    </View>
                                 </View>
                             </View>
-                        )}
+                            <View style={{ marginHorizontal: 20 }}>
+                                <TextView style={styles.searchTitleTxt}>{'Recent searches'}</TextView>
+                                {
+                                    props.isRecentUserLoading && <SearchTagLoader />
+                                }
+                                <View style={styles.searchContainer}>
+                                    {
+                                        !props.isRecentUserLoading && props.recentUserSearch.length < 1 && <EmptyList message={'No recent searches found'} />
+                                    }
+                                    {
+
+                                        props.recentUserSearch.map((search, index) => {
+                                            return (
+                                                <Pressable onPress={() => {
+                                                    searchByText(search.searchTerm)
+                                                }} key={index} style={styles.tagContainer}>
+                                                    <TextView style={styles.tagTxt}>{search.searchTerm}</TextView>
+                                                </Pressable>
+                                            )
+
+                                        })
+                                    }
+                                </View>
+                            </View>
+                        </View>
+                    )}
             </Content>
         </Container>
     );
