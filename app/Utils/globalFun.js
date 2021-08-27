@@ -51,7 +51,7 @@ export function validateUserName(username) {
  * @returns 
  */
 export function validatePhoneNumber(phoneNumber) {
-    const phoneNumberRegX = /[0-9]{10}$/
+    const phoneNumberRegX = /[0-9]{4,15}$/
     return phoneNumberRegX.test(phoneNumber)
 }
 
