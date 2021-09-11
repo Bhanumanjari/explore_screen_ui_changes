@@ -2,55 +2,78 @@ package app.hellos;
 
 import android.app.Application;
 import android.content.Context;
+import android.net.Uri;
+
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
+import app.hellos.generated.BasePackageList;
+
+import org.unimodules.adapters.react.ReactAdapterPackage;
+import org.unimodules.adapters.react.ModuleRegistryAdapter;
+import org.unimodules.adapters.react.ReactModuleRegistryProvider;
+import org.unimodules.core.interfaces.Package;
+import org.unimodules.core.interfaces.SingletonModule;
+import expo.modules.updates.UpdatesController;
+
+import com.facebook.react.bridge.JSIModulePackage;
+import com.swmansion.reanimated.ReanimatedJSIModulePackage;
+
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-
-//import com.rnapplication.generated.BasePackageList;
-import org.devio.rn.splashscreen.SplashScreenReactPackage;
 import java.util.Arrays;
-
-//import org.unimodules.adapters.react.ModuleRegistryAdapter;
-//import org.unimodules.adapters.react.ReactModuleRegistryProvider;
-//import org.unimodules.core.interfaces.SingletonModule;
+import java.util.List;
+import javax.annotation.Nullable;
 
 public class MainApplication extends Application implements ReactApplication {
+  private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(
+    new BasePackageList().getPackageList()
+  );
 
-//    private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(new BasePackageList().getPackageList(), null);
+  private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
+    @Override
+    public boolean getUseDeveloperSupport() {
+      return BuildConfig.DEBUG;
+    }
 
-  private final ReactNativeHost mReactNativeHost =
-      new ReactNativeHost(this) {
-        @Override
-        public boolean getUseDeveloperSupport() {
-          return BuildConfig.DEBUG;
-        }
+    @Override
+    protected List<ReactPackage> getPackages() {
+      List<ReactPackage> packages = new PackageList(this).getPackages();
+      packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+      return packages;
+    }
 
-        @Override
-        protected List<ReactPackage> getPackages() {
-          @SuppressWarnings("UnnecessaryLocalVariable")
-          List<ReactPackage> packages = new PackageList(this).getPackages();
-//          packages.add(new SplashScreenReactPackage());
-          // Packages that cannot be autolinked yet can be added manually here, for example:
-          // packages.add(new MyReactNativePackage());
+    @Override
+    protected String getJSMainModuleName() {
+      return "index";
+    }
 
-//            List<ReactPackage> unimodules = Arrays.<ReactPackage>asList(
-//                    new ModuleRegistryAdapter(mModuleRegistryProvider)
-//            );
-//            packages.addAll(unimodules);
+    @Override
+    protected JSIModulePackage getJSIModulePackage() {
+      return new ReanimatedJSIModulePackage();
+    }
 
-          return packages;
-        }
+    @Override
+    protected @Nullable String getJSBundleFile() {
+      //if (BuildConfig.DEBUG) {
+        return super.getJSBundleFile();
+      //} else {
+      //  return UpdatesController.getInstance().getLaunchAssetFile();
+      //}
+    }
 
-        @Override
-        protected String getJSMainModuleName() {
-          return "index";
-        }
-      };
+    @Override
+    protected @Nullable String getBundleAssetName() {
+      //if (BuildConfig.DEBUG) {
+        return super.getBundleAssetName();
+      //} else {
+      //  return UpdatesController.getInstance().getBundleAssetName();
+      //}
+    }
+  };
 
   @Override
   public ReactNativeHost getReactNativeHost() {
@@ -61,6 +84,11 @@ public class MainApplication extends Application implements ReactApplication {
   public void onCreate() {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
+
+    //if (!BuildConfig.DEBUG) {
+    //  UpdatesController.initialize(this);
+    //}
+
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }
 
@@ -79,7 +107,7 @@ public class MainApplication extends Application implements ReactApplication {
          We use reflection here to pick up the class that initializes Flipper,
         since Flipper library is not available in release mode
         */
-        Class<?> aClass = Class.forName("com.rnapplication.ReactNativeFlipper");
+        Class<?> aClass = Class.forName("app.hellos.ReactNativeFlipper");
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);

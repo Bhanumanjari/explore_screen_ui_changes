@@ -1,12 +1,12 @@
-rootProject.name = 'RNApplication'
+rootProject.name = 'hellos'
 
-include ':react-native-splash-screen'   
-project(':react-native-splash-screen').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-splash-screen/android')
-//apply from: '../node_modules/react-native-unimodules/gradle.groovy'; includeUnimodulesProjects()
+apply from: new File(["node", "--print", "require.resolve('react-native-unimodules/package.json')"].execute().text.trim(), "../gradle.groovy"); includeUnimodulesProjects()
+//apply from: '../node_modules/react-native-unimodules/gradle.groovy'
+//includeUnimodulesProjects()
 
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json')"].execute().text.trim(), "../native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 
-//include ':react-native-video'
-//project(':react-native-video').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android-exoplayer')
+//apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle");
+//applyNativeModulesSettingsGradle(settings)
 
 include ':app'
