@@ -34,6 +34,7 @@ function UserProfileDetails(props) {
     useLayoutEffect(() => {
         props.navigation.setOptions({
             headerShown: true,
+            headerTransparent:true,
             headerLeft: () => <BackButton />,
             headerRight: () =>
                 <Pressable onPress={() => setShowActionSheet(true)}>
