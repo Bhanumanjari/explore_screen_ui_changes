@@ -59,14 +59,14 @@ function ScreenComponent(props) {
         }
     }, [props.exploreVideoList])
 
-    useEffect(() => {
+    /*useEffect(() => {
         const _unsubscribeFocus = props.navigation.addListener('focus', () => {
             onRefresh(false)
         })
         return () => {
             _unsubscribeFocus && _unsubscribeFocus()
         }
-    }, [props.navigation])
+    }, [props.navigation])*/
 
     useLayoutEffect(() => {
         props.navigation.setOptions({

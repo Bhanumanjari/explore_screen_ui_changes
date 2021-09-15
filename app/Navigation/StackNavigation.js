@@ -39,8 +39,17 @@ import AuthContext from '../context/AuthContext';
 import WebViewComponent from '../Root/Screens/WebView/WebView';
 import { getForMeVideo, getTrendingVideo } from '../store/home';
 import { getAppConfig } from '../store/global';
+import { CardStyleInterpolators } from '@react-navigation/stack';
+import { createSharedElementStackNavigator } from 'react-navigation-shared-element'
+import { enableScreens } from 'react-native-screens';
+import VideoTutorial from '../Root/Screens/VideoTutorialScreen/VideoTutorialScreen' ;
 
-const Stack = createStackNavigator();
+
+enableScreens();
+
+//const Stack = createSharedElementStackNavigator() ;
+
+const Stack = createStackNavigator( );
 
 export const Auth = () => {
 
@@ -64,12 +73,14 @@ export const Auth = () => {
                     const userData = JSON.parse(res);
                     setToken(userData);
                 } else {
-                    redirectToLogin();
+                    redirectToVideoTutorial();
+                    //redirectToLogin();
                 }
             })
             .catch((err) => {
                 console.log(err);
-                redirectToLogin();
+                redirectToVideoTutorial();
+                //redirectToLogin();
             });
     };
 
@@ -85,6 +96,7 @@ export const Auth = () => {
                     //     }
                     // })
                 } else {
+                    //redirectToVideoTutorial();
                     redirectToLogin();
                 }
             })
@@ -92,6 +104,12 @@ export const Auth = () => {
                 console.log(err);
                 redirectToLogin();
             });
+    };
+
+    const redirectToVideoTutorial = async ()=>{
+        setInitialRouteName("VideoTutorialScreen") ;
+        await delay(1000) ;
+        setIsLoading(false) ;
     };
 
     const redirectToLogin = async () => {
@@ -135,8 +153,11 @@ export const Auth = () => {
     }))
 
     if (isLoading) {
+        //return <VideoTutorial />
         return <SplashScreen />
     }
+
+   
     // console.log("Auth:::::::", isSignIn)
     return (
         <AuthContext.Provider value={authValue}>
@@ -145,8 +166,15 @@ export const Auth = () => {
                 // initialRouteName={initialRouteName}
                 screenOptions={{
                     headerShown: false,
+                    presentation: 'card',
+                    animationEnabled: true,
+                    cardStyleInterpolator: CardStyleInterpolators.forScaleFromCenterAndroid
+                    
                 }}
+                
+                
             >
+                <Stack.Screen name="VideoTutorialScreen" component={VideoTutorial} />
                 <Stack.Screen name="LoginScreen" component={LoginScreen} />
                 <Stack.Screen name="InfoScreen" component={InfoScreen} />
                 <Stack.Screen name="TermsScreen" component={TermsScreen} />

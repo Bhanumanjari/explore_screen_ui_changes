@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { StackActions } from '@react-navigation/native';
 import React from 'react';
 import {
   View,
@@ -14,15 +15,23 @@ import { heart, lock, newHello } from '../assets';
 import { color, font } from '../Theme';
 import { PixcelWidth } from '../Utils';
 import { SwapFace } from './SwapFace';
+import { SharedElement } from 'react-navigation-shared-element';
+
 
 export const CategoryListItem = ({ item, index }) => {
   const navigation = useNavigation();
   const titles = item.title.split('-');
+  const pushAction = StackActions.push('VideoDetailsScreen', { ...item });
+
   return (
+    
     <Pressable
-      onPress={() => navigation.navigate('VideoDetailsScreen', { ...item })}
+      onPress={() => navigation.dispatch(pushAction)}
+      
+      //onPress={() => navigation.push('VideoDetailsScreen', { ...item })}
       style={{
         flex: 1, borderRadius: 15,
+        
       }}>
       <FastImage
         style={styles.flatlistImg}
@@ -50,6 +59,7 @@ export const CategoryListItem = ({ item, index }) => {
         </LinearGradient>
       </FastImage>
     </Pressable>
+    
   );
 };
 

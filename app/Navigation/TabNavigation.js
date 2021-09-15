@@ -20,10 +20,14 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 
 export const TabNavigation = () => {
-  const Tab = createBottomTabNavigator();
+  const Tab = createBottomTabNavigator({
+    animationEnabled: true,
+
+  });
   return (
     <Tab.Navigator
       // tabBar = {(props) => <HBottomTabBar {...props} />}
+      
       screenOptions={({route}) => ({
         tabBarIcon: ({focused, color, size}) => {
           //   let iconName;

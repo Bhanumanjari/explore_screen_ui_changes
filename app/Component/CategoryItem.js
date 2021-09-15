@@ -9,7 +9,9 @@ const CategoryItem = ({ item, index, selectedIndex = -1, onPressItem = () => { }
     return (
         <Pressable style={[styles.exploreFilterContainer, {
             borderWidth: isSelected ? 1 : undefined,
-            borderColor: isSelected ? color.txt_white : undefined
+            borderColor: isSelected ? color.txt_white : undefined,
+            backgroundColor: isSelected ? color.btnPrimary_color : undefined,
+            elevation: isSelected ? 1 : 0
         }]} onPress={() => onPressItem(item, index)}>
             <TextView style={styles.exploreFilterText}>{item.name}</TextView>
         </Pressable>

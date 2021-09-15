@@ -22,6 +22,13 @@ import { hideNavigationBar, showNavigationBar } from "react-native-navigation-ba
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { logAnalyticsEvent } from "../../../Config/analyticsEvent";
 
+//const rewardId = TestIds.REWARDED  // uncomment this while developing
+const rewardId = getRewardAdsId() ; // uncomment this while production
+const rewardAd = RewardedAd.createForAdRequest(rewardId,{
+    keywords: ['*'],
+});
+
+
 const SwapVideoLoader = (props) => {
 
     const appConfig = useSelector(state => state.global.appConfig)
@@ -55,9 +62,33 @@ const SwapVideoLoader = (props) => {
     //     }
     // }, [])
 
-    useEffect(() => {
-        showRewardAd()
-    }, [])
+     useEffect(() => {
+         console.log("showing the adds" ) ;
+         console.log("rewardId = ", rewardId) ;
+         //showRewardAd()
+         const eventListener = rewardAd.onAdEvent((type, error, reward) => {
+            if (type === RewardedAdEventType.LOADED) {
+                console.log('Ad loaded');
+                rewardAd.show()
+            }
+
+            if (type === RewardedAdEventType.EARNED_REWARD) {
+                console.log('Ad completed');
+                console.log("reward = ", reward) ;
+            }
+        });
+        rewardAd.load() ;
+        console.log(rewardAd) ;
+        console.log(rewardAd.loaded)
+        console.log(rewardAd.adUnitId) ;
+        //if(rewardAd.loaded){
+        //    rewardAd.show();
+       // }
+        
+        return()=>{
+            eventListener();
+        }
+     },[]);
 
     useEffect(() => {
         swapFace()
@@ -106,12 +137,8 @@ const SwapVideoLoader = (props) => {
     // }, [props.navigation])
 
     const showRewardAd = () => {
-        const rewardId = getRewardAdsId()
-        const rewardAd = RewardedAd.createForAdRequest(rewardId, {
-            testDevices: ['EMULATOR'],
-        });
-
-        rewardAd.onAdEvent((type, error) => {
+        
+        const eventListener = rewardAd.onAdEvent((type, error, reward) => {
             if (type === RewardedAdEventType.LOADED) {
                 console.log('Add loaded');
                 rewardAd.show()

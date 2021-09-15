@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     },
     titleTxt: {
         fontSize: PixcelWidth(30),
-        marginTop: 15,
+        marginTop: '15%',
         marginLeft: 20,
         fontFamily: font.MontserratBold,
         //letterSpacing:2,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
         // position: 'absolute',
         width: '100%',
         backgroundColor: '#20292D',
-        padding: 20,
+        padding: 15,
     },
     bottomCont: {
 
@@ -108,8 +108,9 @@ const styles = StyleSheet.create({
     },
     joinBtnTxt: {
         letterSpacing: 2,
-        marginVertical: 12,
-        marginHorizontal: 25,
+        //marginVertical: 12,
+        marginHorizontal: 5,
+        padding: 10,
         fontSize: 15,
         fontFamily: font.MontserratSemibold,
         color: color.txt_white,

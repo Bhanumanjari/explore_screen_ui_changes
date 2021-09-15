@@ -4,6 +4,7 @@ import {
   FlatList,
   RefreshControl,
   View,
+  Image
 } from 'react-native';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { Body, Container, Content, Header, Left, Right } from 'native-base';
@@ -44,6 +45,7 @@ import { useLayoutEffect } from 'react';
 import { useRef } from 'react';
 import CategoryItem from '../../../../Component/CategoryItem';
 import analytics from '@react-native-firebase/analytics';
+import { SharedElement } from 'react-navigation-shared-element';
 
 // const ShimmerPlaceHolder = createShimmerPlaceholder(LinearGradient);
 const HomeTab = (props) => {
@@ -63,12 +65,16 @@ const HomeTab = (props) => {
     page: 0,
   })
   const [categoryVideoList, setCategoryVideoList] = useState([])
+  const [isLoading, setIsLoading] = useState(true) ;
 
   useEffect(() => {
-    dispatch(setAuthCallback(authContext.setIsSignIn))
-    dispatch(getCategoryList('', true))
-    dispatch(fetchUserProfile())
-  }, [])
+    //if(isLoading){
+      dispatch(setAuthCallback(authContext.setIsSignIn))
+      dispatch(getCategoryList('', true))
+      dispatch(fetchUserProfile())
+      //setIsLoading(false) ;
+    //}
+  },[])
 
   useLayoutEffect(() => {
     props.navigation.setOptions({
@@ -103,13 +109,18 @@ const HomeTab = (props) => {
   }, [props.navigation])
 
   useEffect(() => {
-    const _unsubscribeFocus = props.navigation.addListener('focus', () => {
-      loadData()
-    })
+    //const _unsubscribeFocus = props.navigation.addListener('focus', () => {
+    //  loadData()
+    //})
 
-    return () => {
-      _unsubscribeFocus()
+    if(isLoading == true){
+      loadData() ;
+      setIsLoading(false) ;
     }
+
+    //return () => {
+    //  _unsubscribeFocus()
+    //}
   }, [])
 
   useEffect(() => {
@@ -182,6 +193,7 @@ const HomeTab = (props) => {
     dispatch(getForMeVideo('?forme=true'))
     dispatch(getTrendingVideo('?isTrending=true'))
     // dispatch(getCategoryVideoList(`?limit=10&skip=0`))
+    
     setCategoryVideoConfig({
       page: 0
     })
@@ -223,9 +235,10 @@ const HomeTab = (props) => {
 
   const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
     const paddingToBottom = 70;
-    if (scrollDirection.current && contentOffset.y > scrollDirection.current.y) {
+    if (scrollDirection.current && (contentOffset.y + paddingToBottom) > scrollDirection.current.y) {
       scrollDirection.current = contentOffset
-      return layoutMeasurement.height + contentOffset.y >=
+      //return true ;
+      return layoutMeasurement.height + contentOffset.y + paddingToBottom >=
         contentSize.height - paddingToBottom;
     } else {
       scrollDirection.current = contentOffset
@@ -255,6 +268,7 @@ const HomeTab = (props) => {
         }}
         scrollEventThrottle={400}
       >
+        
         {!props.isTrendingLoading ? (
           <TextView style={styles.listtitle}>TRENDING</TextView>
         ) : (
@@ -280,7 +294,7 @@ const HomeTab = (props) => {
           }}
         />}
         {!props.isForMeLoading ? (
-          <TextView style={styles.listtitle}>FOR YOU</TextView>
+          <TextView style={styles.listtitle}>LATEST</TextView>
         ) : (
           <TextLoader />
         )}
@@ -351,7 +365,7 @@ const HomeTab = (props) => {
             data={categoryVideoList}
             removeClippedSubviews={true}
             windowSize={11}
-            initialNumToRender={5}
+            //initialNumToRender={5}
             contentContainerStyle={{
               flex: 0,
               paddingHorizontal: PixcelWidth(15),
@@ -360,7 +374,7 @@ const HomeTab = (props) => {
             style={styles.flatlistCont}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
-            renderItem={(item) => <CategoryListItem {...item} />}
+            renderItem={(item) => <CategoryListItem {...item}/>  }
             keyExtractor={(item) => item._id}
             ListEmptyComponent={() => {
               if (!props.isCategoryVideoLoading) {

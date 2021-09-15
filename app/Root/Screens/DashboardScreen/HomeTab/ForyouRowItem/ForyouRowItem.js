@@ -10,6 +10,7 @@ const RowItem = ({ item, onVideoSelect }) => {
     return (
         <Pressable onPress={() => {
             navigation.navigate('VideoDetailsScreen', { ...item })
+            
         }}>
 
             <View style={{ flex: 1, borderRadius: 15 }}>

@@ -1,4 +1,5 @@
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, StackActions } from "@react-navigation/native";
+
 import React from "react";
 import { Pressable } from "react-native";
 import FastImage from "react-native-fast-image";
@@ -16,7 +17,8 @@ function BackButton({ onBackPress }) {
                     if (onBackPress) {
                         onBackPress()
                     } else {
-                        navigation.goBack()
+                        //navigation.goBack()
+                        navigation.dispatch(StackActions.pop(1)) ;
                     }
                 }}>
                 <FastImage

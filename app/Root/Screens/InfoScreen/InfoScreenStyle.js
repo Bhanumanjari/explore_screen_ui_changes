@@ -16,7 +16,8 @@ const styles = StyleSheet.create({
     backgroundColor: color.primary_color,
     flex: 1,
     alignItems: 'center',
-    paddingBottom: 20
+    paddingBottom: 20,
+    overflow: 'scroll'
   },
   infoImg: {
     alignSelf: 'center',
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     backgroundColor: '#20292D',
-    padding: 20,
+    padding: 15,
   },
   bottomCont: {
     width: '100%',
@@ -80,12 +81,18 @@ const styles = StyleSheet.create({
   loginBtn: {
     borderRadius: 25,
     borderWidth: 1,
+    //height: 45,
+    ///width: 100,
+    //alignSelf: 'center',
+    //justifyContent: 'center',
+    //alignItems: 'center',
     borderColor: '#FFF',
   },
   loginBtnText: {
     letterSpacing: 2,
-    marginVertical: 12,
-    marginHorizontal: 25,
+    //marginVertical: 8,
+    marginHorizontal: 5,
+    padding: 10,
     fontSize: 15,
     fontFamily: font.MontserratSemibold,
     color: color.txt_white,

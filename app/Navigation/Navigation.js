@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Text, View, StatusBar, Linking } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Text, View, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import 'react-native-gesture-handler';
 import { Auth } from './StackNavigation';
@@ -9,6 +10,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import changeNavigationBarColor from 'react-native-navigation-bar-color';
 import analytics from '@react-native-firebase/analytics';
 import { useCallback } from 'react';
+import { AppEventsLogger } from 'react-native-fbsdk-next';
+import App from '..';
 
 const config = {
   initialRouteName: 'Home',
@@ -62,8 +65,9 @@ function Navigation() {
 
   return (
     <>
-      <StatusBar barStyle='light-content' backgroundColor={color.primary_color} />
+    
       <SafeAreaProvider>
+       <StatusBar style="light" />
         <NavigationContainer
           ref={navigationRef}
           linking={linking}
@@ -80,9 +84,15 @@ function Navigation() {
                 screen_name: currentRouteName,
                 screen_class: currentRouteName,
               });
+              AppEventsLogger.logEvent('Screen View',{
+                screen_name: currentRouteName,
+                screen_class: currentRouteName,
+              })
+              
             }
             routeNameRef.current = currentRouteName;
           }}
+          
         >
           <Auth />
         </NavigationContainer>

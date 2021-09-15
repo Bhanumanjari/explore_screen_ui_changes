@@ -13,6 +13,7 @@ import FastImage from 'react-native-fast-image';
 import { debounce } from 'lodash';
 import { validateUserName } from '../../../Utils/globalFun';
 import ImagePickerModal from '../../../Component/ImagePickerModal';
+import BackButton from "../../../Component/BackButton";
 
 class ProfileDetailsScreen extends Component {
     state = {
@@ -127,11 +128,24 @@ class ProfileDetailsScreen extends Component {
 
     }, 500)
 
+    //componentDidMount = ()=>{
+    //    this.setHeader();
+   // }
+
     componentWillUnmount = () => {
         this.props.saveUserNameAvaibility(true)
         this.props.setUserNameAvaibilityLoader(false)
         this.props.changeUserNameErrorMessage('')
     }
+    setHeader = () => {
+        this.props.navigation.setOptions({
+          title: '',
+          headerLeft: () => <BackButton />,
+          headerShown: true,
+          headerTransparent: true,
+        })
+      }
+    
 
     render() {
         let userProfile;
@@ -143,12 +157,17 @@ class ProfileDetailsScreen extends Component {
             isProfile = true
         }
         return (
-            <Container>
-                <MainHeader
+            <Container
+              
+            >
+                
+                {<MainHeader
                     //title={'New Hello'}
+                    
                     onBackPress={() => {
                         this.props.navigation.goBack();
-                    }} />
+                    }} />}
+                    
 
                 <Content style={styles.mainLayout}>
 

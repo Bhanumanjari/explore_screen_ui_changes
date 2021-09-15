@@ -1,4 +1,11 @@
 {
-  "name": "RNApplication",
-  "displayName": "RNApplication"
+  "expo": {
+    "name": "hellos",
+    "slug": "hellos",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "hellos"
 }

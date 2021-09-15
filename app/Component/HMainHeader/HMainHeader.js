@@ -22,6 +22,8 @@ export class MainHeader extends React.Component {
                 androidStatusBarColor={color.primary_color}
                 iosBarStyle="light-content"
                 style={{
+                    marginTop:25,
+                    marginLeft:-10,
                     justifyContent: 'flex-start',
                     backgroundColor: color.primary_color,
                     borderBottomColor: color.primary_color,

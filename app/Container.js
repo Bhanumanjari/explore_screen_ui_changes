@@ -11,14 +11,14 @@ import ThemLoader from './Component/ThemLoader';
 import splash from 'react-native-splash-screen';
 import { Settings } from 'react-native-fbsdk-next';
 import { useRef } from 'react';
-import appsFlyer from 'react-native-appsflyer';
+//import appsFlyer from 'react-native-appsflyer';
 
 const BACKEND_TO_USE = 'rn-webgl' //'rn-webgl';
 
 // tf.device_util.isMobile = () => true
 // tf.device_util.isBrowser = () => false
 
-var onInstallConversionDataCanceller = appsFlyer.onInstallConversionData(
+/*var onInstallConversionDataCanceller = appsFlyer.onInstallConversionData(
   (res) => {
     if (JSON.parse(res.data.is_first_launch) == true) {
       if (res.data.af_status === 'Non-organic') {
@@ -32,13 +32,13 @@ var onInstallConversionDataCanceller = appsFlyer.onInstallConversionData(
       console.log('This is not first launch');
     }
   },
-);
+);*/
 
-var onAppOpenAttributionCanceller = appsFlyer.onAppOpenAttribution((res) => {
+/*var onAppOpenAttributionCanceller = appsFlyer.onAppOpenAttribution((res) => {
   console.log(res);
-});
+});*/
 
-appsFlyer.initSdk(
+/*appsFlyer.initSdk(
   {
     devKey: 'ZogMJCCM2Qks7hFsEecrce',
     isDebug: false,
@@ -50,7 +50,7 @@ appsFlyer.initSdk(
   (error) => {
     console.error(error);
   }
-);
+);*/
 
 const Containers = (props) => {
 
@@ -78,7 +78,7 @@ const Containers = (props) => {
     }
   }, [])
 
-  useEffect(() => {
+  /*useEffect(() => {
     return () => {
       // Optionaly remove listeners for deep link data if you no longer need them after componentWillUnmount
       if (onInstallConversionDataCanceller) {
@@ -92,7 +92,7 @@ const Containers = (props) => {
         onAppOpenAttributionCanceller = null;
       }
     };
-  });
+  });*/
 
   return (
     <Container>

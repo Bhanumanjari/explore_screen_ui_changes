@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { StatusBar } from 'expo-status-bar'
 import {
   Image,
   TouchableOpacity,
@@ -9,7 +10,9 @@ import {
   Alert,
   Animated,
   AppState,
-  SafeAreaView
+  SafeAreaView,
+  Text,
+  Dimensions
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -21,7 +24,8 @@ import { TextView } from 'app/Component';
 import { backArrow, plus } from 'app/assets';
 import RawItem from '../DashboardScreen/ProfileTab/ProfileRowItem';
 import LinearGradient from 'react-native-linear-gradient';
-import Video from 'react-native-video';
+//import Video from 'react-native-video';
+import { Video, AVPlaybackStatus } from 'expo-av';
 import * as Progress from 'react-native-progress';
 import { deviceWidth, showBottomToast } from '../../../Utils';
 import { color } from '../../../Theme';
@@ -33,7 +37,7 @@ import { getData } from '../../../Config/asyncStorage';
 import { faceSwipCount } from './../../../Utils/storageKeys';
 import { findIndex, isNumber, remove } from 'lodash';
 import * as Animatable from 'react-native-animatable';
-import RNFS from 'react-native-fs';
+import RNFS, { stat } from 'react-native-fs';
 import { SvgXml } from 'react-native-svg';
 import { heartSvg, startSvg } from './../../../assets/Svg/svgFiles';
 import { getVideoByIdActions, likeVideoAction, saveVideoAction, shareVideoAction, shareVideoOnSocial, swapVideo, updateVideoById } from '../../../store/video/actions';
@@ -42,7 +46,7 @@ import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import CameraRoll from "@react-native-community/cameraroll";
 import { StackActions } from '@react-navigation/native';
 import Share from 'react-native-share';
-import { explore, menu_dot, pauseButton, playButton, shareIcon, socialShare } from '../../../assets';
+import { explore, menu_dot, pauseButton, playButton, shareIcon, socialShare, video } from '../../../assets';
 import { delay } from '../../../Utils/globalFun';
 import axios from 'axios'
 import ThemLoader from '../../../Component/ThemLoader';
@@ -58,12 +62,20 @@ import { bufferConfig } from '../../../Utils/constant';
 import { TestIds, RewardedAd, RewardedAdEventType } from '@react-native-firebase/admob';
 import BackButton from "../../../Component/BackButton";
 import { requestStoragePermission } from '../../../Config/permissions';
+import { SharedElement } from 'react-navigation-shared-element';
 class VideoDetailsScreen extends Component {
-  duration = null
+
+  constructor(props){
+    super(props) ;
+    this.videoRef = React.createRef(null) ;
+  }
+  //duration = null
   source = null
   rewardAd = null
   faceData = null
   state = {
+    duration:null,
+    //positionMillis: null,
     addedBy: {},
     liked: [],
     preferences: [],
@@ -72,6 +84,8 @@ class VideoDetailsScreen extends Component {
     shared: [],
     title: '',
     video: this.props.route.params?.video ?? {},
+    videoStatus: {},
+    createdBy: 'Sagar',
     isVideoLoading: true,
     isVideoLoaded: false,
     selectedFaceIndex: 0,
@@ -98,13 +112,17 @@ class VideoDetailsScreen extends Component {
       this.setVideoLike();
       this.setVideoSave();
       if (!this.state.isFaceSwapped) {
-        // this.loadRewardAd()
+        //  this.loadRewardAd()
         this.fetchDetails()
       }
     });
     AppState.addEventListener("change", this._handleAppStateChange);
     this.setFaceSwipCount();
     this.setHeader()
+    if(this.state.selectedFace == null && this.props.user?.faces.length>0){
+      this.selectFace(this.user.props?.faces[0],0);
+    }
+    this.fetchContentBy();
   };
 
   fetchDetails = () => {
@@ -114,6 +132,28 @@ class VideoDetailsScreen extends Component {
         this.setState({ ...res })
       }
     })
+  }
+
+  fetchContentBy = async () => {
+    try{
+      const data = {
+        videoId: video._id
+      }
+      const res = await fetch( 'https://api.helloface.ai:8000/contentBy',{
+        method: 'POST',
+        body : JSON.stringify(data)
+      } ) ;
+      var resJson = await res.json() ;
+      var createdBy = resJson.name ;
+      this.setState({
+        contentBy: createdBy
+      });
+    }catch(err){
+      this.setstate({
+        createdBy: 'Sagar'
+      })
+
+    }
   }
 
   setFaceSwipCount = () => {
@@ -168,16 +208,34 @@ class VideoDetailsScreen extends Component {
     this._unsubscribeBlur && this._unsubscribeBlur();
   };
 
-  onLoad = (e) => {
-    this.duration = e.duration
+  onLoad = (status) => {
+    
+    
+    // this.duration = this.state.videoStatus.durationMillis
+    console.log(status) ;
+    
+    //console.log(this.state.videoStatus) ;
+
     this.setState({
+      videoStatus: status,
       isVideoLoading: false,
+      isVideoLoaded: true
     });
+    /*if(this.state.videoStatus.isLoaded == true){
+      console.log(this.state.videoStatus)
+      this.setState({
+        duration:this.state.videoStatus.durationMillis,
+        //isVideoLoading: false,
+        isVideoLoaded: true
+      });
+    }*/
+    //this.startVideo() 
   };
 
   onLoadStart = () => {
     this.setState({
       isVideoLoading: true,
+      isVideoLoaded: false
     });
   };
 
@@ -196,7 +254,7 @@ class VideoDetailsScreen extends Component {
 
   onFacePress = async (item, index, hasAdShown = false) => {
 
-    if (!this.duration) {
+    if (!this.state.duration) {
       showBottomToast("Please wait until video loaded fully")
       return
     }
@@ -208,7 +266,7 @@ class VideoDetailsScreen extends Component {
     let formData = new FormData()
     formData.append("_id", this.state._id)
     formData.append("faceId", item._id)
-    formData.append("duration", this.duration)
+    formData.append("duration", this.state.duration)
 
     if (this.source) {
       this.source.cancel()
@@ -242,9 +300,9 @@ class VideoDetailsScreen extends Component {
   };
 
   startVideo = () => {
-    if (this.videoPlayer && !this.state.isVideoLoading) {
+    //if (this.videoPlayer && !this.state.isVideoLoaded) {
       this.videoPlayer.seek(0)
-    }
+    //}
   }
 
   requestStoragePermission = () => {
@@ -547,68 +605,91 @@ class VideoDetailsScreen extends Component {
     // }
   }
 
-  selectFace = (item, index) => {
+  selectFace = async (item, index) => {
 
-    this.setState({
-      selectedFaceIndex: index,
-      selectedFace: item
-    })
+    //await this.setState({
+    //  selectedFaceIndex: index,
+    //  selectedFace: item
+    //})
+    const promise = new Promise( (resolve,reject) =>{
+      this.setState({
+        selectedFaceIndex: index,
+        selectedFace: item
+      },resolve());
+      
+    } )
+    let res = await promise ;
+    return ;
+    
 
-    // if (this.rewardAd) {
-    //   this.pause();
-    //   this.faceData = { item, index }
-    //   this.rewardAd.show();
-    // } else {
-    //   this.onFacePress(item, index)
-    // }
+    //  if (this.rewardAd) {
+    //    this.pause();
+    //    this.faceData = { item, index }
+    //    this.rewardAd.show();
+    //  } else {
+    //    this.onFacePress(item, index)
+    //  }
   }
 
-  swapFace = () => {
+  swapFace = async () => {
 
-    if (!this.duration) {
-      showBottomToast("Please wait until video is loading")
+    console.log(this.state.duration) ;
+    
+    //return
+    
+    if (!this.state.duration) {
+      showBottomToast("Please wait until video gets loaded")
       return
     }
 
-    if (!this.state.selectedFace._id) {
-      showBottomToast("Please select face to swap with")
-      return
+    if(this.props.user?.faces.length == 0){
+      showBottomToast("Please upload atleast one face to swap") ;
+      return ;
     }
+
+    if(this.state.selectedFace == null && this.props.user?.faces.length > 0){
+      //showBottomToast("face is selected") ;
+      //return ;
+      
+      await this.selectFace(this.props.user?.faces[0],0) ;
+      //showBottomToast("face is selected") ;
+    }
+
+    // this.loadRewardAd()
 
     this.props.navigation.dispatch(StackActions.replace("SwapVideoLoaderScreen", {
       faceId: this.state.selectedFace._id,
       videoId: this.state._id,
-      duration: this.duration
+      duration: this.state.duration
     }))
   }
 
-  loadRewardAd = () => {
-    this.rewardAd = RewardedAd.createForAdRequest(TestIds.REWARDED);
+  // loadRewardAd = () => {
+  //   this.rewardAd = RewardedAd.createForAdRequest(TestIds.REWARDED);
 
-    this.rewardAd.onAdEvent((type, error) => {
-      if (type === RewardedAdEventType.LOADED) {
-        console.log('Add loaded');
-      }
+  //   this.rewardAd.onAdEvent((type, error) => {
+  //     if (type === RewardedAdEventType.LOADED) {
+  //       console.log('Add loaded');
+  //     }
 
-      if (type === RewardedAdEventType.EARNED_REWARD) {
-        console.log('Ad completed');
-      }
+  //     if (type === RewardedAdEventType.EARNED_REWARD) {
+  //       console.log('Ad completed');
+  //     }
 
-      if (type === "closed") {
-        console.log('Add closed');
-        const { item, index } = this.faceData
-        this.onFacePress(item, index, true)
-      }
+  //     if (type === "closed") {
+  //       console.log('Add closed');
+  //       const { item, index } = this.faceData
+  //       this.onFacePress(item, index, true)
+  //     }
 
-      if (type === "opened") {
-        console.log('Add opened');
-        this.rewardAd = null
-      }
-    });
+  //     if (type === "opened") {
+  //       console.log('Add opened');
+  //       this.rewardAd = null
+  //     }
+  //   });
 
-    this.rewardAd.load();
-
-  }
+  //   this.rewardAd.load();
+  // }
 
   cancelRequest = () => {
     this.setState({
@@ -617,21 +698,38 @@ class VideoDetailsScreen extends Component {
     this.source.cancel("Swap video request cancelled successfully")
   }
 
-  playPause = () => {
-    if (this.state.isPaused) {
+  playPauseStartAnim(){
+    Animated.timing(this.state.playPauseBtnOpacity, {
+      toValue: 0,
+      duration: 1000,
+      useNativeDriver: true
+    }).start()
+  }
+  playPauseStopAnim(){
+    Animated.timing(this.state.playPauseBtnOpacity, {
+      toValue: 0.8,
+      duration: 1000,
+      useNativeDriver: true
+    }).start()
+
+  }
+
+  playPause = async (e) => {
+    //this.state.videoStatus.isPlaying ? this.videoRef.current.pauseAsync() : this.videoRef.current.playAsync()
+                      
+    if (!e.isPlaying){
       this.play()
-      Animated.timing(this.state.playPauseBtnOpacity, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true
-      }).start()
+      this.playPauseStartAnim() ;
+      this.videoRef.current.playAsync() ;
+      
+      
     } else {
       this.pause()
-      Animated.timing(this.state.playPauseBtnOpacity, {
-        toValue: 0.8,
-        duration: 1000,
-        useNativeDriver: true
-      }).start()
+      this.playPauseStopAnim() ;
+      this.videoRef.current.pauseAsync() ;
+      
+      
+      //this.videoRef.current.playAsync()
     }
   }
 
@@ -664,52 +762,112 @@ class VideoDetailsScreen extends Component {
           ]}
           style={{ flex: 1 }}>
           <View style={styles.videoInnerContainer}>
+             
             <View style={{ flex: 1 }}>
-              <Video
+              {/*<Video
                 ref={(ref) => this.videoPlayer = ref}
+
                 source={{
                   uri: video?.original // "https://helloface1.s3.ap-south-1.amazonaws.com/297_Pic_1395084196034_Animated_Vid_327822514145.mp4" //"https://objectstore.e2enetworks.net/helloface/Videos/alia_gangubai_del1.mp4" //
                 }}
                 // hideShutterView
-                disableFocus={false}
+                //disableFocus={false}
                 paused={this.state.isPaused}
                 style={styles.videoContainer}
                 repeat
                 resizeMode="contain"
                 onLoad={this.onLoad}
-                onLoadStart={this.onLoadStart}
-                onBuffer={this.onBuffer}
+                //onLoadStart={this.onLoadStart}
+                //onBuffer={this.onBuffer}
                 onReadyForDisplay={this.onReadyForDisplay}
-                onError={(err) => console.log(err)}
-                bufferConfig={bufferConfig}
+                //onError={(err) => console.log(err)}
+                //bufferConfig={bufferConfig}
                 // maxBitRate={2000000}
                 poster={video.thumbnail}
                 posterResizeMode='cover'
+              />*/
+              }
+
+              {
+                /*this.state.isVideoLoading == true?
+                <SharedElement id={`video.${video._id}`}>
+                <View style={{
+                  width:'100%',
+                  height:'100%',
+                  backgroundColor: 'white',
+                  position: 'absolute',
+                
+                  
+                }}
+                >
+                  <Text>{video.thumbnail}</Text>
+                  <Image style={{height: 0.8*Dimensions.get('window').height ,widht: 0.8*Dimensions.get('window').width}} source={{uri: video.thumbnail}} />
+                  
+
+                </View>
+                </SharedElement>:null*/
+
+              }
+
+              {
+                /*<SharedElement id='video' >
+
+                  <Image style={{height:100,width:100}} source={{uri: video.thumbnail}} />
+
+                </SharedElement>*/
+              }
+              
+              {
+              
+              <Video
+                ref={this.videoRef}
+                
+                source={{
+                  uri: video?.original // "https://helloface1.s3.ap-south-1.amazonaws.com/297_Pic_1395084196034_Animated_Vid_327822514145.mp4" //"https://objectstore.e2enetworks.net/helloface/Videos/alia_gangubai_del1.mp4" //
+                }}
+                
+                style={styles.videoContainer}
+                isLooping
+                resizeMode="contain"
+                onLoad={this.onLoad}
+                //onLoadStart={this.onLoadStart}
+                
+                shouldPlay
+                onPlaybackStatusUpdate={status => this.setState({videoStatus: status})}
+                //onPlaybackStatusUpdate={status => this.state.videoStatus = status}
+                // maxBitRate={2000000}
+                poster={video.thumbnail}
+                posterResizeMode='contain'
               />
+              
+              
+              }
+
+
               <View style={styles.playPauseBtn}>
                 <Pressable style={styles.playPauseBtnContainer}
-                  onPress={this.playPause}
+                  //onPress={this.playPause}
+                  onPress={() =>{
+                      this.playPause(this.state.videoStatus)
+                      //this.state.videoStatus.isPlaying ? this.videoRef.current.pauseAsync() : this.videoRef.current.playAsync()
+                      //this.state.videoStatus.isPlaying ? this.playPause(true) : this.playPause(false)
+                      //this.playPause(this.state.videoStatus) ;
+                      //this.playPause
+                   } 
+                  }
                 >
                   <Animated.Image
                     style={[styles.playPauseBtnImg, {
                       opacity: this.state.playPauseBtnOpacity
                     }]}
-                    source={this.state.isPaused ? playButton : pauseButton}
+                    source={this.state.videoStatus.isPlaying ? pauseButton : playButton}
                   />
                 </Pressable>
               </View>
             </View>
-            {/* {!this.state.isVideoLoaded && (
-              <FastImage
-                style={styles.thumbnailImage}
-                source={{
-                  uri: video.thumbnail,
-                }}
-                resizeMode={FastImage.resizeMode.cover}
-              />
-            )} */}
-            {this.state.isVideoLoading && (
-              <Progress.Bar
+            { 
+              this.state.isVideoLoaded == false?
+                <Progress.Bar
                 style={{ position: 'absolute', bottom: 0 }}
                 borderWidth={0}
                 borderRadius={0}
@@ -717,8 +875,31 @@ class VideoDetailsScreen extends Component {
                 indeterminate
                 height={2}
                 width={deviceWidth}
-              />
-            )}
+              /> : null
+               
+
+            }
+
+            {
+              /*<View 
+                style={{
+                  height: 'auto',
+                  width:'auto',
+                  backgroundColor: 'red',
+                  position: 'absolute',
+                  top: 40,
+                  right: 40,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  alignContent: 'center'
+
+                }}
+              >
+                <Text style={{margin:'auto'}} > content by {`${this.state.createdBy}`} </Text>
+
+                </View>*/
+            }
+           
 
             {/* {!this.state.isFaceSwapped ? ( */}
             <React.Fragment>
@@ -888,4 +1069,9 @@ const mapStateToProps = (state) => {
     user: state.login.data,
   };
 };
+/*VideoDetailsScreen.sharedElements = (route, otherRoute, showing) => {
+
+  return [`pic`] ;
+
+}*/
 export default connect(mapStateToProps, mapActionCreators)(VideoDetailsScreen);

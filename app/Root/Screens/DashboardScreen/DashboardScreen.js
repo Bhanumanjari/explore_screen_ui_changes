@@ -7,7 +7,7 @@ import ExploreTab from './ExploreTab';
 import MyHelloTab from './MyHelloTab';
 import ProfileTab from './ProfileTab';
 
-import { createStackNavigator } from '@react-navigation/stack';
+import { CardStyleInterpolators, createStackNavigator } from '@react-navigation/stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import SearchedScreen from '../SearchedScreen/SearchedScreen';
 import SearchedUserScreen from '../SearchedUserScreen/SearchedUserScreen';
@@ -76,7 +76,8 @@ class DashboardScreen extends Component {
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
-            gestureEnabled: false,
+            gestureEnabled: true,
+            animationEnabled: true
           }}>
           <Stack.Screen name="HomeTab" component={HomeTab} />
           <Stack.Screen name="ExploreTab" component={ExploreTabScreen} />
@@ -263,7 +264,8 @@ const BottomTabNavigator = (props) => {
   return (
     <BottomTab.Navigator
       tabBarPosition='bottom'
-      swipeEnabled={false}
+      swipeEnabled={true}
+      animationEnabled={true}
       tabBar={(props) => <HBottomTabBar {...props} />}
       tabBarOptions={{}}>
       <BottomTab.Screen
@@ -292,6 +294,7 @@ const BottomTabNavigator = (props) => {
         component={ProfileTabBottom}
         options={{
           tabBarLabel: 'PROFILE',
+          
         }}
       />
     </BottomTab.Navigator>
@@ -303,6 +306,7 @@ const HomeTabBottom = (props) => {
     <Stack.Navigator
       screenOptions={{
         headerShown: true,
+        animationEnabled: true,
         headerStyle: {
           backgroundColor: color.primary_color
         }
@@ -341,18 +345,15 @@ export const DashboardTab = (props) => {
   const authContext = useContext(AuthContext)
   // console.log("::::=>>>", authContext)
   return (
+    
     <Stack.Navigator
       initialRouteName={authContext?.initialRouteName ?? undefined}
-      headerMode='screen'
+      //headerMode='screen'
       screenOptions={{
         headerShown: false,
-        headerStyle: {
-          backgroundColor: color.primary_color,
-          borderBottomWidth: 0,
-
-          elevation: 0,
-          shadowColor: 'transparent'
-        }
+        animationEnabled:true,
+        //gestureEnabled: true,
+        
       }}>
       <Stack.Screen name="Home" component={BottomTabNavigator} />
       <Stack.Screen name="PrefrenceScreen" component={PrefrenceScreen} />
@@ -382,7 +383,26 @@ export const DashboardTab = (props) => {
       <Stack.Screen name="UserProfileDetailsScreen" component={UserProfileDetails} />
       <Stack.Screen name="RequestSendVideoScreen" component={RequestSendVideoScreen} />
       <Stack.Screen name="RequestReceivedScreen" component={RequestReceivedScreen} />
-      <Stack.Screen name="VideoDetailsScreen" component={VideoDetailsScreen} />
+      <Stack.Screen name="VideoDetailsScreen" component={VideoDetailsScreen} 
+          options={{
+            gestureEnabled: false,
+            transitionSpec:{
+              open: { animation: 'timing', config:{ duration: 500 } },
+              close: { animation: 'timing', config:{ duration: 500 } }
+            },
+            //cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid
+            cardStyleInterpolator: ({ current: {progress} }) => {
+              return {
+                cardStyle:{
+                  opacity: progress,
+                  
+                }
+              }
+            }
+
+          }}
+      
+      />
       <Stack.Screen name="LanguageScreen" initialParams={{
         initial: true
       }} component={Language} />
@@ -397,6 +417,7 @@ export const DashboardTab = (props) => {
         gestureEnabled: false
       }} />
     </Stack.Navigator>
+    
   );
 };
 

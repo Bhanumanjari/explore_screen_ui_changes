@@ -17,6 +17,7 @@ import CountryCodeModal from '../../../Component/CountryCodeModal';
 import { ScrollView } from 'react-native-gesture-handler';
 import analytics from '@react-native-firebase/analytics';
 import CountryPicker from 'react-native-country-picker-modal'
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 class LoginScreen extends Component {
 
@@ -101,10 +102,13 @@ class LoginScreen extends Component {
     render() {
         return (
             <View style={{ flex: 1 }}>
+                
                 <KeyboardAwareScrollView enableOnAndroid showsVerticalScrollIndicator={false} style={{ backgroundColor: color.primary_color, flex: 1 }}>
                     <View style={styles.mainLayout}>
-                        <TextView style={styles.subTxt}>Here to Get</TextView>
-                        <TextView style={styles.titleTxt}>Welcomed!</TextView>
+                        
+                        <TextView style={styles.titleTxt}>Welcome onboard!</TextView>
+                        {/* <TextView style={styles.subTxt}>Here to get</TextView> */}
+                        
                         <Image
                             source={loginImg}
                             resizeMode={'contain'}

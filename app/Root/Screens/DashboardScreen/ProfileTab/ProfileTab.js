@@ -293,6 +293,9 @@ class ProfileTab extends Component {
               </View>
             </View>
             <TouchableOpacity
+              style={{
+                marginTop:50
+              }}
               onPress={() => {
                 this.props.saveUserNameAvaibility(true)
                 this.props.navigation.navigate('ProfileDetailsScreen');

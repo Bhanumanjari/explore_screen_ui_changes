@@ -29,7 +29,7 @@ class InfoScreen extends Component {
   render() {
     return (
       <Container>
-        <ScrollView contentContainerStyle={styles.mainLayout} bounces={false}>
+        <ScrollView scrollEnabled contentContainerStyle={styles.mainLayout} bounces={true}>
           <Image
             source={infoImg}
             resizeMode={'contain'}
