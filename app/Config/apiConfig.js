@@ -4,7 +4,10 @@ const CancelToken = axios.CancelToken
 export const source = CancelToken.source()
 
 const instance = axios.create({
-    baseURL: 'https://api.helloface.ai:8000/', //'http://bdc59b395e13.ngrok.io/'
+    //baseURL: 'http://hellofaceprodbackend-env.eba-cz6m5ugr.ap-south-1.elasticbeanstalk.com/', //'http://bdc59b395e13.ngrok.io/'
+    //baseURL: 'http://74-80-245-232.ic2net.net:9000',
+    
+    baseURL: 'https://backend-mobile.hellos.ai/',
     cancelToken: source.token
 });
 

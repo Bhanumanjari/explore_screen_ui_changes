@@ -8,7 +8,7 @@ import {
   showBottomToast,
 } from '../../../Utils';
 import { fetchOtp, signUp, verifyOtp } from '../../../Services/authApiServices';
-import { signup } from '../../../store/signUp/actions';
+import { LoginGuest, signup, signupGuest } from '../../../store/signUp/actions';
 import { bindActionCreators } from 'redux';
 import { setProfile } from '../../../store/login';
 import { apiLoadingStart, apiLoadingStop } from '../../../store/global/actions';
@@ -17,6 +17,9 @@ import { TextInputMask } from 'react-native-masked-text';
 import { secondsToTime } from '../../../Utils/globalFun';
 import AuthContext from '../../../context/AuthContext';
 import analytics from '@react-native-firebase/analytics';
+import { font } from 'app/Theme'
+import BackButton from '../../../Component/BackButton';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 class VerifyPhoneNumber extends Component {
   static contextType = AuthContext
@@ -27,7 +30,27 @@ class VerifyPhoneNumber extends Component {
   };
   componentDidMount = () => {
     this.sendOtp();
+    //this.setHeader();
   };
+  setHeader = () => {
+    this.props.navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      title: "Verify Phone Number",
+      headerTitleStyle: {
+        fontFamily: font.MontserratBold,
+        fontSize: 22,
+        color: 'white',
+        alignItems: 'flex-start',  
+        justifyContent: 'flex-start',
+        fontWeight: 'bold',
+        marginRight: 20,
+
+      },
+      headerLeft: ()=> <BackButton/>
+    })
+  }
+
 
   sendOtp = () => {
     const { phoneNumber, countryCode } = this.props.route.params;
@@ -69,6 +92,15 @@ class VerifyPhoneNumber extends Component {
   }
 
   onDone = () => {
+    console.log(this.props.user) ;
+    console.log(Object.keys(this.props.user).length  ) ;
+    console.log(this.props.user.username) ;
+    
+    //console.log(this.props.size) ;
+    //return ;
+    //this.registerAccount() ;
+    //return ;
+    
     let code = this.otpInput.getRawValue();
     code = code.split(' - ').join('');
     const { phoneNumber, countryCode } = this.props.route.params;
@@ -91,6 +123,7 @@ class VerifyPhoneNumber extends Component {
       type: 'PHONE_VERIFICATION',
     })
       .then((res) => {
+        console.log("otp verified")
         this.timeCounter && clearInterval(this.timeCounter)
         this.registerAccount()
       })
@@ -112,7 +145,40 @@ class VerifyPhoneNumber extends Component {
     });
   }
 
-  registerAccount = () => {
+  guestUser = () => {
+    //console.log("in guest user") ;
+    //return ;
+    const {
+      phoneNumber,
+      userName,
+      password,
+      countryCode
+    } = this.props.route.params;
+    this.props.LoginGuest(
+      { username: userName, phoneNumber, countryCode, password },
+      {
+        onSuccess: () => {
+          this.props.stopLoading();
+          this.context.setInitialRouteName("LanguageScreen")
+          this.context.setIsSignIn(true)
+          analytics().logSignUp({
+            method: "phone"
+          })
+          this.props.navigation.reset({
+            indes:0,
+            routes: [{name: 'Home'}]
+          });
+        },
+        onError: () => {
+          this.props.stopLoading();
+        },
+      },
+    );
+  }
+
+  newUser = () => {
+    //console.log("in new user") ;
+    //return ;
     const {
       phoneNumber,
       userName,
@@ -129,18 +195,54 @@ class VerifyPhoneNumber extends Component {
           analytics().logSignUp({
             method: "phone"
           })
-          // this.props.navigation.navigate('LanguageScreen', {
-          //   initial: true
-          // })
-          // this.resetScreen('LanguageScreen', {
-          //   initial: true
-          // })
+          this.props.navigation.reset({
+            indes:0,
+            routes: [{name: 'Home'}]
+          });
         },
         onError: () => {
           this.props.stopLoading();
         },
       },
     );
+  }
+
+  registerAccount = () => {
+    console.log(this.props.user.username) ;
+    if(this.props.user.username){
+      this.guestUser() ;
+      //showBottomToast("sorry signed up already") ;
+    }else{
+      this.newUser() ;
+    }
+    //console.log("No user Registered") ;
+    //return  ;
+    /*const {
+      phoneNumber,
+      userName,
+      password,
+      countryCode
+    } = this.props.route.params;
+    this.props.LoginGuest(
+      { username: userName, phoneNumber, countryCode, password },
+      {
+        onSuccess: () => {
+          this.props.stopLoading();
+          this.context.setInitialRouteName("LanguageScreen")
+          this.context.setIsSignIn(true)
+          analytics().logSignUp({
+            method: "phone"
+          })
+          this.props.navigation.reset({
+            indes:0,
+            routes: [{name: 'Home'}]
+          });
+        },
+        onError: () => {
+          this.props.stopLoading();
+        },
+      },
+    );*/
   };
 
   componentWillUnmount = () => {
@@ -149,16 +251,18 @@ class VerifyPhoneNumber extends Component {
 
   render() {
     return (
-      <Container>
-        <MainHeader
+      <Container
+      >
+        {<MainHeader
           title={'Verify Phone Number'}
           onBackPress={() => {
             this.props.navigation.goBack();
           }}
         />
+        }
 
         <View style={styles.mainLayout}>
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row'}}>
             <View
               style={[styles.line, { borderColor: '#4F45BC', width: 10 }]}></View>
             <View
@@ -222,6 +326,8 @@ const mapActionCreators = (dispatch) => ({
   startLoading: bindActionCreators(apiLoadingStart, dispatch),
   stopLoading: bindActionCreators(apiLoadingStop, dispatch),
   signup: bindActionCreators(signup, dispatch),
+  signUpGuest: bindActionCreators(signupGuest,dispatch) ,
+  LoginGuest: bindActionCreators(LoginGuest,dispatch),
   setLoginData: (data) => {
     dispatch(setProfile(data));
   },
@@ -230,7 +336,7 @@ const mapActionCreators = (dispatch) => ({
 const mapStateToProps = (state) => {
   return {
     loading: state.login.loading,
-    login: state.login.data,
+    user: state.login.data,
   };
 };
 

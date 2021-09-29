@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { color, font } from 'app/Theme';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { PixcelWidth } from '../../../Utils';
@@ -11,10 +11,13 @@ const styles = StyleSheet.create({
     },
     titleTxt: {
         fontSize: PixcelWidth(30),
-        marginTop: '15%',
-        marginLeft: 20,
+        marginTop: '10%',
+        marginLeft: 10,
+        //marginLeft: 20,
         fontFamily: font.MontserratBold,
         //letterSpacing:2,
+        alignItems:'center',
+        justifyContent:'center',
         color: color.txt_white,
         //paddingHorizontal:20,
     },
@@ -29,8 +32,10 @@ const styles = StyleSheet.create({
     infoImg: {
         alignSelf: 'center',
         //marginTop:'10%',
-        height: PixcelWidth(200),
-        width: PixcelWidth(200),
+        height: 0.5*Dimensions.get('window').width,
+        width: 0.5*Dimensions.get('window').width,
+        //height: PixcelWidth(200),
+        //width: PixcelWidth(200),
     },
     line: {
         borderWidth: 0.5,
@@ -61,6 +66,9 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         marginHorizontal: '35%',
         backgroundColor: color.btnPrimary_color,
+        shadowColor: 'black',
+        shadowRadius: 10,
+        elevation: 1
     },
     acceptBtnTxt: {
         marginVertical: 14,
@@ -69,7 +77,7 @@ const styles = StyleSheet.create({
         //letterSpacing: 2,
         fontFamily: font.MontserratSemibold,
         //marginHorizontal:30,
-        color: color.txt_white,
+        color: 'white',
     },
     forgotTxt: {
         alignSelf: 'center',
@@ -91,7 +99,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
     },
     declineBtn: {
         marginLeft: 14,
@@ -104,16 +112,23 @@ const styles = StyleSheet.create({
     joinBtn: {
         borderRadius: 25,
         borderWidth: 1,
+        width: 0.8*Dimensions.get('window').width,
+        justifyContent: 'center',
+        alignItems: 'center',
         borderColor: '#FFF',
     },
     joinBtnTxt: {
         letterSpacing: 2,
         //marginVertical: 12,
-        marginHorizontal: 5,
+        //marginHorizontal: 5,
         padding: 10,
         fontSize: 15,
         fontFamily: font.MontserratSemibold,
-        color: color.txt_white,
+        alignItems: 'center',
+        justifyContent:'center',
+        color: 'white',
+        textShadowColor: 'black',
+        textShadowRadius: 30
     },
     eyeIcon: {
         height: PixcelWidth(26),

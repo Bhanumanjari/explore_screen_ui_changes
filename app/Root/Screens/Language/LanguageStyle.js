@@ -33,7 +33,10 @@ const styles = StyleSheet.create({
     flatlistCont: {
         backgroundColor: color.primary_color,
         paddingHorizontal: 15,
-        paddingTop: PixcelWidth(10)
+        paddingTop: PixcelWidth(10),
+        
+        maxHeight: 0.8*Dimensions.get('window').height
+
     },
     languageTxt: {
         fontFamily: font.MontserratBold,
@@ -53,6 +56,8 @@ const styles = StyleSheet.create({
     footerCont: {
         height: wp / 6,
         alignItems: 'center',
+        
+        //marginTop: Dimensions.get('window').height,
         backgroundColor: '#20292D',
         borderTopWidth: 1,
         borderTopColor: 'grey',
@@ -87,6 +92,25 @@ const styles = StyleSheet.create({
         color: color.txt_white,
         fontFamily: font.MontserratSemibold,
     },
+    acceptBtnTxt:{
+        marginVertical:14,
+        //letterSpacing: 2,
+        fontSize:15,
+        fontFamily:font.MontserratSemibold,
+        marginHorizontal:20,
+        color:color.txt_white
+    },
+    acceptTxt: {
+        textAlign: "center",
+        color: color.txt_white,
+        marginHorizontal:20,
+        marginTop: 20
+    },
+    acceptLinkTxt: {
+        color: color.txt_white,
+        textDecorationLine: 'underline'
+    }
+
 })
 
 export default styles

@@ -14,11 +14,16 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         bottom: 0,
     },
-    container1: {
-        backgroundColor: color.primary_color,
-        flex: 1,
-        alignItems: 'center',
-    },
+    
+        container1: {
+            backgroundColor: color.primary_color,
+            flex: 1,
+            flexDirection: 'column',
+            //maxHeight: Dimensions.get('window').height,
+            alignItems: 'center',
+            justifyContent: 'flex-end'
+        },
+    
     logo: {
         marginTop: '35%',
         width: 120,

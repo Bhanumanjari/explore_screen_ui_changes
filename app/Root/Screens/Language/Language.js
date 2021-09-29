@@ -5,7 +5,7 @@ import React from "react"
 import { useContext } from "react"
 import { useState } from "react"
 import { useEffect } from "react"
-import { View, Image, FlatList, Pressable } from "react-native"
+import { View, Image, FlatList, Pressable, TouchableOpacity, Dimensions } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useDispatch, useSelector } from "react-redux"
 import { checkRound } from "../../../assets"
@@ -15,6 +15,8 @@ import { LanguageLoader } from "../../../ShimmerEffects/ProfileLoaders"
 import { getLanguages, updateProfileAction } from "../../../store/profile"
 import { showBottomToast } from "../../../Utils"
 import styles from "./LanguageStyle"
+import { EULA, PRIVACY_POLICY, TERMS_CONDITION } from '../../../Utils/constant';
+
 
 const Language = (props) => {
     const initial = props.route?.params?.initial ?? false;
@@ -62,8 +64,19 @@ const Language = (props) => {
                 routes: [{ name: 'Home' }],
             });
         } else {
-            props.navigation.goBack();
+            props.navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+            });
+            //props.navigation.goBack();
         }
+    };
+    const redirectToWebView = ({ title, url }) => {
+
+        props.navigation.navigate('WebViewComponentScreen', {
+          title,
+          url,
+        });
     };
 
     const updateLanguages = () => {
@@ -98,7 +111,7 @@ const Language = (props) => {
             <TextView style={[styles.titleTxt,{
                 paddingTop: insets.top
             }]}>{"Select one or more language"}</TextView>
-            {isLanguagesLoading ? <LanguageLoader /> : <FlatList
+            {isLanguagesLoading ? <LanguageLoader /> :  <FlatList
                 data={languages}
                 style={styles.flatlistCont}
                 showsVerticalScrollIndicator={false}
@@ -120,7 +133,42 @@ const Language = (props) => {
                         </Pressable>
                     );
                 }}
-            />}
+            />
+            }
+            {
+                //terms and conditions
+                initial && <View
+                    style={{
+                        marginBottom: 30,
+                    }}
+                >
+                    <TextView style={styles.acceptTxt}>{"By proceeding, I agree to Hellos "}<TextView style={styles.acceptLinkTxt} onPress={() => {
+                redirectToWebView({
+                  title: 'Terms & Conditions',
+                  url: TERMS_CONDITION,
+                })
+              }}>{"Terms of Use"}</TextView>{", "}<TextView style={styles.acceptLinkTxt} onPress={() => {
+                redirectToWebView({
+                  title: 'End User Licence Agreement',
+                  url: EULA,
+                })
+              }}>{" End User Licence Agreement "}</TextView>{" and acknowledge that I have read the "}<TextView style={styles.acceptLinkTxt} onPress={() => {
+                redirectToWebView({
+                  title: 'Privacy Policy',
+                  url: PRIVACY_POLICY,
+                })
+              }}>{"Privacy Policy"}</TextView></TextView>
+              
+                </View>
+            }
+            {
+                !initial && <View
+                    style={{
+                        marginTop: 40,
+                    }}
+                >
+                    </View>
+            }
             <Footer style={styles.footerCont}>
                 <View style={styles.bottom}>
                     <View style={styles.bottomCont}>

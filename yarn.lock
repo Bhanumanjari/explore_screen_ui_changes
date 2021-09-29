@@ -7656,6 +7656,11 @@
     "prop-types" "15.7.2"
     "react-async-hook" "3.6.1"
 
+"react-native-device-info@^8.3.3":
+  "integrity" "sha512-l8/3MHq6O9PRWSrKwy63WvDCnt8IXOce86AEkJFVVtKR9cAGLLaFyXUGyqIc5T/kpCyOqofOattVDjZGUn/zAQ=="
+  "resolved" "https://registry.npmjs.org/react-native-device-info/-/react-native-device-info-8.3.3.tgz"
+  "version" "8.3.3"
+
 "react-native-drawer@2.5.1":
   "integrity" "sha512-cxcQNbSWy5sbGi7anSVp6EDr6JarOBMY9lbFOeLFeVYbONiudoqRKbgEsSDgSw3/LFCLvUXK5zdjXCOedeytxQ=="
   "resolved" "https://registry.npmjs.org/react-native-drawer/-/react-native-drawer-2.5.1.tgz"

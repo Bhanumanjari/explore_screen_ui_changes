@@ -10,8 +10,8 @@ import nointernetIcon from './nointernet_icon.png';
 import iconDashboard from './icon_dashboard.png';
 import home from './home.png';
 import explore from './explore.png';
-import video from './video.png';
-import smile from './smile.png';
+import video from './video.png'; 
+import smile from './usericon.png';
 import infoImg from './infoImg.png';
 import award from './award.png';
 import backArrow from './backArrow.png';
@@ -78,7 +78,7 @@ import splashBottomLayer from './splash_bottom_layer.png';
 import smileLoader from './Round-smilee-loader.gif';
 import socialShare from './social-share.png';
 import downloadIcon from './download.png';
-import swapLoader from './swap-loader.gif';
+import swapLoader from './swapLoader.gif';
 
 export {
   lock,

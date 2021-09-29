@@ -49,6 +49,14 @@ import ProfileDetailsScreen from '../ProfileDetailsScreen/ProfileDetailsScreen';
 import { useDebouncedCallback } from 'use-debounce';
 import Feedback from '../FeedbackScreen/Feedback';
 import SwapVideoLoader from '../VideoDetailsScreen/SwapVideoLoader';
+import SignupScreen from '../SignupScreen/SignupScreen';
+import LoginScreen from '../LoginScreen/LoginScreen';
+import SignupMoreDetails from '../SignupMoreDetails/SignupMoreDetails';
+import SignupScreen4 from '../SignupScreen4/SignupScreen4';
+import ForgotPasswordScreen from '../ForgotPasswordScreen/ForgotPasswordScreen';
+import ForgotPasswordScreen1 from '../ForgotPasswordScreen1/ForgotPasswordScreen1';
+import ResetPasswordScreen from '../ResetPasswordScreen/ResetPasswordScreen';
+//import WebViewComponent from '../WebView/WebView';
 
 const Tab = createMaterialTopTabNavigator();
 // const BottomTab = createMaterialTopTabNavigator();
@@ -350,11 +358,22 @@ export const DashboardTab = (props) => {
       initialRouteName={authContext?.initialRouteName ?? undefined}
       //headerMode='screen'
       screenOptions={{
+        gestureEnabled: false,
         headerShown: false,
-        animationEnabled:true,
-        //gestureEnabled: true,
+        transitionSpec:{
+          open: { animation: 'timing', config:{ duration: 300 } },
+          close: { animation: 'timing', config:{ duration: 300 } }
+        },
         
-      }}>
+        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+        cardOverlayEnabled: true,
+        cardShadowEnabled: true,
+        cardStyle: {backgroundColor: 'transparent'},
+
+      }}
+      mode="modal"
+  
+      >
       <Stack.Screen name="Home" component={BottomTabNavigator} />
       <Stack.Screen name="PrefrenceScreen" component={PrefrenceScreen} />
       <Stack.Screen
@@ -387,8 +406,8 @@ export const DashboardTab = (props) => {
           options={{
             gestureEnabled: false,
             transitionSpec:{
-              open: { animation: 'timing', config:{ duration: 500 } },
-              close: { animation: 'timing', config:{ duration: 500 } }
+              open: { animation: 'timing', config:{ duration: 300 } },
+              close: { animation: 'timing', config:{ duration: 300 } }
             },
             //cardStyleInterpolator: CardStyleInterpolators.forFadeFromBottomAndroid
             cardStyleInterpolator: ({ current: {progress} }) => {
@@ -414,8 +433,41 @@ export const DashboardTab = (props) => {
       <Stack.Screen name="ProfileDetailsScreen" component={ProfileDetailsScreen} />
       <Stack.Screen name="FeedbackScreen" component={Feedback} />
       <Stack.Screen name="SwapVideoLoaderScreen" component={SwapVideoLoader} options={{
-        gestureEnabled: false
+        gestureEnabled: false,
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
       }} />
+      <Stack.Screen name="SignupScreen" component={SignupScreen} />
+      <Stack.Screen name="LoginScreen" component={LoginScreen} options={
+        {
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }
+      } />
+      <Stack.Screen name="SignupMoreDetails" component={SignupMoreDetails} options={
+        {
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }
+      } />
+      <Stack.Screen name="VerifyPhoneNumber" component={SignupScreen4} options={
+        {
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }
+      } />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={
+        {
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }
+      } />
+      <Stack.Screen name="ForgotPassword1" component={ForgotPasswordScreen1} options={
+        {
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }
+      } />
+      <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} options={
+        {
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        }
+      } />
+      
     </Stack.Navigator>
     
   );

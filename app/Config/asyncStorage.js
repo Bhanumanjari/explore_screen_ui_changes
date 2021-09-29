@@ -39,5 +39,9 @@ export const getData = async (key) => {
  * removing data from local storage
  */
 export const removeData = async (key) => {
-    await AsyncStorage.removeItem(key)
+    //await AsyncStorage.removeItem(key) ;
+    await AsyncStorage.setItem(key,JSON.stringify({})) ;
+    await AsyncStorage.removeItem(key) ;
+
+    return ;
 }

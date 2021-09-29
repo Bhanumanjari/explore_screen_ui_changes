@@ -1,5 +1,7 @@
 export const LOGIN = 'login';
+export const LOGINGUEST = 'loginGuest'
 export const REGISTER = 'signup';
+export const REGISTERGUEST = 'signupGuest'
 export const VERIFY_OTP = 'verify-otp';
 export const FORGOT_PASSWORD = 'forgot-password';
 export const RESEND_OTP = 'resend-otp';

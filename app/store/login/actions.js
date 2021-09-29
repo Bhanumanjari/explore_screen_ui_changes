@@ -27,6 +27,21 @@ export const loginUser = (params, { onSuccess, onError }) => {
   };
 };
 
+export const logOut = () => {
+  return (dispatch) => {
+      try{
+        
+        dispatch(setProfile({  }));
+        
+      }catch{(err) => { 
+        console.log(err);
+        }
+      };
+  };
+};
+
+
+
 export const fetchUserProfile = () => {
   return (dispatch) => {
     fetchMe().then(res => {

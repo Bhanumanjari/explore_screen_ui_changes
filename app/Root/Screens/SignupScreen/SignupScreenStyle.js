@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { color, font } from 'app/Theme';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { PixcelHeight, PixcelWidth } from '../../../Utils';
@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
         backgroundColor: color.primary_color,
         flex: 1,
         paddingHorizontal: 20,
+        //marginTop: Platform.OS === 'ios'? 80: 40,
     },
     titleTxt: {
         marginLeft: PixcelWidth(37),

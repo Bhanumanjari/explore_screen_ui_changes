@@ -1,4 +1,4 @@
-import { Image, Keyboard, Platform, Pressable, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Keyboard, Platform, Pressable, TextInput, TouchableOpacity, View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import React, { Component } from 'react';
 import { Container, Content, Footer } from 'native-base';
@@ -18,6 +18,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 import analytics from '@react-native-firebase/analytics';
 import CountryPicker from 'react-native-country-picker-modal'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getUniqueId, getManufacturer } from 'react-native-device-info';
+import {NavigationActions} from '@react-navigation/native'
+import BackButton from '../../../Component/BackButton';
+
+
+let deviceId = getUniqueId() ;
+console.log("unique/id = ", deviceId) ;
 
 class LoginScreen extends Component {
 
@@ -27,7 +34,8 @@ class LoginScreen extends Component {
         this.state = {
             email: '',
             phoneNumber: '',
-            password: "",
+            userName: '',
+            password: '',
             countryCode: "+91",
             countryFlag: "IN",
             isPasswordVisible: false,
@@ -37,11 +45,23 @@ class LoginScreen extends Component {
     }
 
     componentDidMount = async () => {
+        console.log("uniqueId = ",deviceId)
         if (Platform.OS === 'ios') {
             const trackingStatus = await requestTrackingPermission();
         }
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow);
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide);
+        this.setHeader();
+    }
+    setHeader = ()=>{
+        this.props.navigation.setOptions(
+            {
+                headerShown: true,
+                headerTransparent: true,
+                title: "",
+                headerLeft: ()=> <BackButton/>
+            }
+        )
     }
 
     _keyboardDidShow = () => {
@@ -64,7 +84,7 @@ class LoginScreen extends Component {
     login = () => {
 
         if (this.state.phoneNumber === '') {
-            showBottomToast("Mobile number is required")
+            showBottomToast("Phonenumber is required")
             return
         }
 
@@ -77,10 +97,34 @@ class LoginScreen extends Component {
         this.props.loginUser({
             phoneNumber: this.state.phoneNumber,
             countryCode: this.state.countryCode,
+            //userName: this.state.userName,
             password: this.state.password
         }, {
             onSuccess: (_) => {
                 this.context.setIsSignIn(true)
+                //this.context.setIsGuest(false)
+                console.log("signed in") ;
+                const initial = this.props.route?.params?.initial ?? false;
+                //this.props.navigation.replace('Home') ;
+                this.props.navigation.reset({
+                    indes:0,
+                    routes: [{name: 'Home'}]
+                });
+                //this.props.navigation.dispatch(NavigationActions.reset({
+                //    ides: 0,
+                //    key: null,
+                //    actions: [NavigationActions.navigate({routeName: 'Home' })]
+                //})) ;
+                /*if (initial) {
+                    console.log("initial = ",initial) ;
+                    this.props.navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Home' }],
+                });
+                } else {
+                    this.props.navigation.popToTop();
+                }*/
+                
                 analytics().logLogin({
                     method: "phone"
                 })
@@ -104,9 +148,16 @@ class LoginScreen extends Component {
             <View style={{ flex: 1 }}>
                 
                 <KeyboardAwareScrollView enableOnAndroid showsVerticalScrollIndicator={false} style={{ backgroundColor: color.primary_color, flex: 1 }}>
+                    
                     <View style={styles.mainLayout}>
-                        
-                        <TextView style={styles.titleTxt}>Welcome onboard!</TextView>
+                        <View
+                            style={{
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                        <TextView style={styles.titleTxt}>Welcome Back!</TextView>
+                        </View>
                         {/* <TextView style={styles.subTxt}>Here to get</TextView> */}
                         
                         <Image
@@ -116,8 +167,10 @@ class LoginScreen extends Component {
                         />
                         {/*<View style={styles.line}></View>*/}
                         <View style={styles.inputTxtCont}>
+                            
+                            {
                             <View style={{ marginLeft: 20 }} >
-                                {/* <TextView style={{ color: "white" }}>{this.state.countryFlag}</TextView> */}
+                                
                                 <CountryPicker
                                     {...{
                                         countryCode: this.state.countryFlag,
@@ -129,20 +182,23 @@ class LoginScreen extends Component {
                                     }}
                                 />
                             </View>
+                            
+                            }
                             <TextInput
                                 style={styles.inputTxt}
-                                placeholder="Enter mobile no."
+                                placeholder="Enter phone number"
                                 placeholderTextColor="#FFFFFF50"
                                 onChangeText={(text) => {
                                     this.setState({
                                         phoneNumber: text.trim()
                                     })
                                 }}
-                                maxLength={10}
+                                //maxLength={10}
                                 keyboardType='phone-pad'
                                 autoCapitalize={"none"}
                             />
                         </View>
+                        {
                         <View style={styles.inputTxtCont}>
                             <TextInput
                                 style={styles.inputTxt}
@@ -168,6 +224,7 @@ class LoginScreen extends Component {
                                 />
                             </Pressable>
                         </View>
+                        }
                         <TouchableOpacity style={styles.acceptBtn}
                             onPress={() => {
                                 this.login()
@@ -189,18 +246,16 @@ class LoginScreen extends Component {
                 {/* </Footer> */}
                 {!this.state.isKeyboardOpen ? <View style={styles.bottom}>
                     <View style={styles.bottomCont}>
-                        <View style={styles.declineBtn}>
-                            <TextView style={styles.declineBtnTxt}>New Here? </TextView>
-                        </View>
+                       
                         <TouchableOpacity onPress={() => {
-                            this.props.navigation.navigate('InfoScreen')
+                            this.props.navigation.navigate('SignupScreen')
                         }} style={styles.joinBtn}
 
                         >
-                            <TextView style={styles.joinBtnTxt}>JOIN HELLOS</TextView>
+                            <Text style={styles.joinBtnTxt}>JOIN HELLOS</Text>
                         </TouchableOpacity>
                     </View>
-                </View> : null}
+                    </View> : null}
 
 
                 {/* <CountryCodeModal visible={this.state.showCountryCodeModal} toggle={() => {

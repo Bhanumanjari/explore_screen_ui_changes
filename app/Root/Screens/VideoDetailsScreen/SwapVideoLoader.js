@@ -23,7 +23,8 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { logAnalyticsEvent } from "../../../Config/analyticsEvent";
 
 //const rewardId = TestIds.REWARDED  // uncomment this while developing
-const rewardId = getRewardAdsId() ; // uncomment this while production
+//const rewardId = getRewardAdsId() ; // uncomment this while production
+const rewardId = __DEV__? TestIds.REWARDED : getRewardAdsId() ;
 const rewardAd = RewardedAd.createForAdRequest(rewardId,{
     keywords: ['*'],
 });
@@ -69,6 +70,7 @@ const SwapVideoLoader = (props) => {
          const eventListener = rewardAd.onAdEvent((type, error, reward) => {
             if (type === RewardedAdEventType.LOADED) {
                 console.log('Ad loaded');
+                //swapFace() ;
                 rewardAd.show()
             }
 
@@ -91,7 +93,10 @@ const SwapVideoLoader = (props) => {
      },[]);
 
     useEffect(() => {
-        swapFace()
+        setTimeout(() => {
+            swapFace();
+        }, 4000);
+        //swapFace()
     }, [])
 
     useEffect(() => {

@@ -55,6 +55,7 @@ export const Auth = () => {
 
     const dispatch = useDispatch()
     const [isSignIn, setIsSignIn] = useState(false)
+    const [isGuest, setIsGuest] = useState(false) ;
     const [isLoading, setIsLoading] = useState(true)
     const [initialRouteName, setInitialRouteName] = useState(undefined)
 
@@ -107,7 +108,7 @@ export const Auth = () => {
     };
 
     const redirectToVideoTutorial = async ()=>{
-        setInitialRouteName("VideoTutorialScreen") ;
+        //setInitialRouteName("VideoTutorialScreen") ;
         await delay(1000) ;
         setIsLoading(false) ;
     };
@@ -125,14 +126,15 @@ export const Auth = () => {
         //     await delay(1000);
         //     setIsLoading(false)
         // })
+        setInitialRouteName("LoginScreen") ;
         await delay(1000);
         setIsLoading(false)
     };
 
     const setSession = async (userData) => {
-        if (!userData.faces || userData.faces.length < 1) {
+        /*if (!userData.faces || userData.faces.length < 1) {
             setInitialRouteName("PhotoClickScreen")
-        } else if (!userData.languages || userData.languages.length < 1) {
+        } else */if (!userData.languages || userData.languages.length < 1) {
             setInitialRouteName("LanguageScreen")
         } else {
             setInitialRouteName("Home")
@@ -152,28 +154,61 @@ export const Auth = () => {
         initialRouteName
     }))
 
-    if (isLoading) {
+    /*if (isLoading) {
         //return <VideoTutorial />
         return <SplashScreen />
-    }
+    }*/
 
    
     // console.log("Auth:::::::", isSignIn)
     return (
         <AuthContext.Provider value={authValue}>
 
-            {!isSignIn ? <Stack.Navigator
+            {(!isSignIn) ? <Stack.Navigator
                 // initialRouteName={initialRouteName}
                 screenOptions={{
+                    gestureEnabled: false,
                     headerShown: false,
-                    presentation: 'card',
-                    animationEnabled: true,
-                    cardStyleInterpolator: CardStyleInterpolators.forScaleFromCenterAndroid
-                    
-                }}
-                
-                
+                    transitionSpec:{
+                      open: { animation: 'timing', config:{ duration: 300 } },
+                      close: { animation: 'timing', config:{ duration: 300 } }
+                    },
+                    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                    /*cardStyleInterpolator: ({ current: {progress} }) => {
+                      return {
+                        cardStyle:{
+                          opacity: progress,
+                          
+                        }
+                      }
+                    },*/
+                    cardShadowEnabled: true,
+                    cardOverlayEnabled: true,
+                    cardStyle: { backgroundColor: 'transparent' },
+                    /*cardStyleInterpolator: ({ current: { progress } }) => ({
+                        cardStyle: {
+                          opacity: progress.interpolate({
+                            inputRange: [0, 0.5, 0.9, 1],
+                            outputRange: [0, 0.25, 0.7, 1],
+                          }),
+                        },
+                        overlayStyle: {
+                          opacity: progress.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 0.5],
+                            extrapolate: 'clamp',
+                          }),
+                        },
+                      }),*/
+                      
+
+
+            
+                  }}
+              
+                mode="modal"
             >
+                { isLoading && <Stack.Screen name="SplashScreen" component={SplashScreen} />}
                 <Stack.Screen name="VideoTutorialScreen" component={VideoTutorial} />
                 <Stack.Screen name="LoginScreen" component={LoginScreen} />
                 <Stack.Screen name="InfoScreen" component={InfoScreen} />

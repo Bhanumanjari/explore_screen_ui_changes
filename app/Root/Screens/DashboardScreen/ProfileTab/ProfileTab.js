@@ -7,13 +7,15 @@ import {
   Text,
   FlatList,
   Alert,
-  Pressable
+  Pressable,
+  Dimensions
 } from 'react-native';
 import { connect } from 'react-redux';
 import { Container, Header, Content, Button, Switch } from 'native-base';
 import styles from './ProfileTabStyle';
 import { user_profile, setting, edit, plus, newHello } from 'app/assets';
 import { color } from '../../../../Theme';
+import { font } from '../../../../Theme';
 import { TextView } from '../../../../Component';
 import RawItem from './ProfileRowItem';
 import { removeData } from '../../../../Config/asyncStorage';
@@ -42,6 +44,9 @@ import {
 import { deleteHello, getMyHellos, saveMyHellos } from '../../../../store/myHellos';
 import { delay } from '../../../../Utils/globalFun';
 import { ABOUT_US, PRIVACY_POLICY, TERMS_CONDITION } from '../../../../Utils/constant';
+import { logOut } from '../../../../store/login/actions'
+let guest = false ;
+
 
 class ProfileTab extends Component {
   static contextType = AuthContext
@@ -80,10 +85,22 @@ class ProfileTab extends Component {
       this.props.navigation.navigate("FeedbackScreen")
     }
   },
+  /*{
+    title: "Sign Up",
+    onPress: () => {
+      this.props.navigation.navigate("SignupScreen")
+    }
+  },
+  {
+    title: "Login",
+    onPress: () => {
+      this.props.navigation.navigate("LoginScreen")
+    }
+  },*/
   {
     title: "Log out",
     onPress: () => {
-      this.confirmationAlert(this.logOut);
+      this.confirmationAlert(this.LogOut);
     }
   }
   ]
@@ -91,6 +108,9 @@ class ProfileTab extends Component {
     super();
     this.state = {
     };
+  }
+  state = {
+    guest: false 
   }
 
   componentDidMount = () => {
@@ -101,6 +121,29 @@ class ProfileTab extends Component {
       this.props.getMyHellos()
       this.props.fetchUserProfile()
     });
+    //console.log("userdata = ") ;
+    //console.log(this.props.user) ;
+    //guest = this.props.user.isGuest ;
+    //if(guest == undefined){
+    //  guest = false ;
+    //}
+    try{
+      let guestTry = this.props.user.isGuest ;
+      if(guestTry!=undefined){
+        this.setState({
+          guest: guestTry 
+        })
+      }else{
+        this.setState({
+          guest: false
+        })
+      }
+    }catch{
+      console.log("user dosent have a guest property") ;
+      
+    }
+    console.log("guest") ;
+    console.log(this.state.guest) ;
     this.setHeader()
   };
 
@@ -123,11 +166,11 @@ class ProfileTab extends Component {
     ]);
   };
 
-  logOut = async () => {
+  LogOut = async () => {
     await removeData(accessToken);
     await removeData(userData);
     await removeData(faceSwipCount);
-
+    this.props.logOut() ;
     console.log(this.context)
     this.context.setInitialRouteName("LoginScreen")
     this.context.setIsSignIn(false)
@@ -230,7 +273,7 @@ class ProfileTab extends Component {
       title: "",
       headerRight: () => {
         return (
-          <Menu>
+          /*<Menu>
             <MenuTrigger>
               <Image source={menu_dot} style={styles.menuImage} resizeMode="contain" />
             </MenuTrigger>
@@ -252,6 +295,78 @@ class ProfileTab extends Component {
                   {menu.title}
                 </TextView>
               </MenuOption>)}
+            </MenuOptions>
+          </Menu>*/
+          <Menu>
+            <MenuTrigger>
+              <Image source={menu_dot} style={styles.menuImage} resizeMode="contain" />
+            </MenuTrigger>
+            <MenuOptions style={{
+              padding: 10,
+              backgroundColor: "#fff"
+            }}
+              customStyles={{
+                optionsContainer: {
+                  marginTop: 40,
+                  right: 100
+                }
+              }}
+            >
+              {this.menuList.map((menu, index) =>{
+                if(menu.title!="Log out" && menu.title!="Login" && menu.title!= "Sign Up"){
+                 return(<MenuOption key={index} style={{
+                  marginVertical: 5
+                  }} onSelect={menu.onPress}>
+                  <TextView>
+                    {menu.title}
+                  </TextView>
+                </MenuOption>)
+                }else if(menu.title == "Login") {
+                  if(this.state.guest == true){
+                  return(
+                  <MenuOption key={index} style={{
+                    marginVertical: 5
+                    }} onSelect={menu.onPress}>
+                    <TextView>
+                      {menu.title}
+                    </TextView>
+                  </MenuOption>)
+                  }else{
+
+                  }
+
+                }else if(menu.title == "Sign Up"){
+                  if(this.state.guest)
+                  {return(
+                  <MenuOption key={index} style={{
+                    marginVertical: 5
+                    }} onSelect={menu.onPress}>
+                    <TextView>
+                      {menu.title}
+                    </TextView>
+                  </MenuOption>)}
+                  else{
+
+                  }
+                }
+                else if(menu.title == "Log out") {
+                  if(this.state.guest == false){
+                  return(
+                  <MenuOption key={index} style={{
+                    marginVertical: 5
+                    }} onSelect={menu.onPress}>
+                    <TextView>
+                      {menu.title}
+                    </TextView>
+                  </MenuOption>)
+                  }else{
+                    
+                  }
+                }  
+              
+              
+              })
+              }
             </MenuOptions>
           </Menu>
         )
@@ -284,15 +399,80 @@ class ProfileTab extends Component {
                   </View>
                 )}
               <View style={styles.userCont}>
-                <TextView style={styles.userTitleTxt}>
-                  {"@" + this.props.user?.username ?? '--'}
-                </TextView>
-                <TextView style={styles.userSubTitleTxt}>
-                  {this.props.user?.name ?? '--'}
-                </TextView>
+                {
+                  (this.state.guest == false)?
+                  <TextView style={styles.userTitleTxt}>
+                    {"@" + this.props.user?.username ?? '--'}
+                  </TextView>:<View
+                    style={{
+                      flex:1,
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <TouchableOpacity
+                      style = {{
+                        height: 40,
+                        width: 0.25*Dimensions.get('window').width ,
+                        borderRadius: 25,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: color.btnPrimary_color,
+                        elevation: 1
+                      }}
+                      onPress={()=>{this.props.navigation.navigate('SignupScreen');}}
+                    >
+                      <Text
+                        style = {{
+                          color: color.txt_white,
+                          fontFamily: font.MontserratSemibold,
+                          fontSize: 18,
+                          
+                        }}
+                      >
+                        Signup
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style = {{
+                        height: 40,
+                        marginLeft:5,
+                        width: 0.25*Dimensions.get('window').width ,
+                        borderRadius: 25,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: color.btnPrimary_color,
+                        elevation: 1
+                      }}
+                      onPress={()=>{this.props.navigation.navigate('LoginScreen');}}
+                    >
+                      <Text
+                        style = {{
+                          color: color.txt_white,
+                          fontFamily: font.MontserratSemibold,
+                          fontSize: 18
+                        }}
+                      >
+                        Login
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+                
+                {
+                  (this.state.guest == false)?
+                  <TextView style={styles.userSubTitleTxt}>
+                    {this.props.user?.name ?? '--'}
+                  </TextView>:null
+                }
               </View>
             </View>
-            <TouchableOpacity
+            {
+              
+
+              
+            (this.state.guest===false)? <TouchableOpacity
               style={{
                 marginTop:50
               }}
@@ -301,7 +481,8 @@ class ProfileTab extends Component {
                 this.props.navigation.navigate('ProfileDetailsScreen');
               }}>
               <Image source={edit} style={styles.editImg} />
-            </TouchableOpacity>
+            </TouchableOpacity>:null
+            }
           </View>
 
           {/* =======like & share count ======= */}
@@ -324,6 +505,22 @@ class ProfileTab extends Component {
           <View style={styles.userImgCont}>
             <TouchableOpacity
               onPress={() => {
+                //console.log(this.props.user.isGuest) ;
+                /*try{
+                  let guestTry = this.props.user.isGuest ;
+                  if(guestTry!=undefined){
+                    this.setState({
+                      guest: guestTry 
+                    })
+                  }else{ 
+                    this.setState({
+                      guest: false
+                    })
+                  }
+                }catch{
+                  console.log("user dosent have a guest property") ;
+                  
+                }*/
                 this.onAddFace()
               }}
               style={styles.addImgCont}>
@@ -522,7 +719,8 @@ const mapActionCreators = {
   fetchUserProfile,
   getMyHellos,
   deleteHello,
-  saveMyHellos
+  saveMyHellos,
+  logOut,
 };
 
 const mapStateToProps = (state) => {

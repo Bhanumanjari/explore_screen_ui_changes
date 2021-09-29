@@ -1,5 +1,5 @@
 import { apiLoadingStart, apiLoadingStop } from 'app/store/global';
-import { signUp } from '../../Services/authApiServices';
+import { signUp, signUpGuest, loginGuest } from '../../Services/authApiServices';
 import { setAccessToken, setProfile } from '../login/actions';
 import { updateProfileAction } from '../profile/actions';
 import { delay } from './../../Utils/globalFun';
@@ -8,6 +8,55 @@ export const signup = (params, { onSuccess, onError }) => {
   return (dispatch, getState) => {
     dispatch(apiLoadingStart());
     signUp(params)
+      .then((res) => {
+        dispatch(setAccessToken(res.accessToken));
+        // const state = getState();
+        // console.log(state);
+        // const user = state?.login?.data ?? {};
+        // delay(200);
+        // updateGuestData(user, dispatch);
+        dispatch(setProfile({ ...res }));
+        // await delay(500);
+        dispatch(apiLoadingStop());
+        onSuccess(res);
+      })
+      .catch((err) => {
+        dispatch(apiLoadingStop());
+        onError();
+        console.log(err);
+      });
+  };
+};
+
+export const signupGuest = (params, { onSuccess, onError }) => {
+  console.log("in signupGuest and params are = ",params) ;
+  return (dispatch, getState) => {
+    dispatch(apiLoadingStart());
+    signUpGuest(params)
+      .then((res) => {
+        dispatch(setAccessToken(res.accessToken));
+        // const state = getState();
+        // console.log(state);
+        // const user = state?.login?.data ?? {};
+        // delay(200);
+        // updateGuestData(user, dispatch);
+        dispatch(setProfile({ ...res }));
+        // await delay(500);
+        dispatch(apiLoadingStop());
+        onSuccess(res);
+      })
+      .catch((err) => {
+        dispatch(apiLoadingStop());
+        onError();
+        console.log(err);
+      });
+  };
+};
+
+export const LoginGuest = (params, { onSuccess, onError }) => {
+  return (dispatch, getState) => {
+    dispatch(apiLoadingStart());
+    loginGuest(params)
       .then((res) => {
         dispatch(setAccessToken(res.accessToken));
         // const state = getState();
@@ -27,6 +76,7 @@ export const signup = (params, { onSuccess, onError }) => {
       });
   };
 };
+
 
 const updateGuestData = (user, dispatch) => {
   console.log(user);

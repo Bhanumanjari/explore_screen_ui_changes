@@ -1,5 +1,5 @@
 import { baseApiCall } from "../Config/Api"
-import { APP_SETTINGS, CHECK_USERNAME, FORGOT_PASSWORD, LOGIN, REGISTER, RESEND_OTP, RESET_PASSWORD, VERIFY_OTP } from "../Config/apiEndPoints"
+import { APP_SETTINGS, CHECK_USERNAME, FORGOT_PASSWORD, LOGIN, LOGINGUEST, REGISTER, REGISTERGUEST, RESEND_OTP, RESET_PASSWORD, VERIFY_OTP } from "../Config/apiEndPoints"
 
 export const fetchOtp = (data) => {
     return baseApiCall({
@@ -32,10 +32,25 @@ export const signUp = (data) => {
         data
     })
 }
+export const signUpGuest = (data) => {
+    return baseApiCall({
+        url: REGISTERGUEST,
+        method: 'post',
+        data
+    })
+}
 
 export const login = (data) => {
     return baseApiCall({
         url: LOGIN,
+        method: 'post',
+        data
+    })
+}
+
+export const loginGuest = (data) => {
+    return baseApiCall({
+        url: LOGINGUEST,
         method: 'post',
         data
     })

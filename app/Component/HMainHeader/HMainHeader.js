@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, View, TouchableOpacity } from 'react-native';
+import { Image, View, TouchableOpacity, Text } from 'react-native';
 import { Header } from 'native-base';
 import styles from './HMainHeaderStyle';
 import { color } from 'app/Theme';
@@ -15,7 +15,7 @@ export class MainHeader extends React.Component {
 
 
     render() {
-        const { title, onBackPress } = this.props;
+        const { title, onBackPress, onNextPress } = this.props;
         return (
 
             <Header
@@ -44,6 +44,35 @@ export class MainHeader extends React.Component {
                                 style={styles.backArrowImg}
                             /></TouchableOpacity>}
                     <TextView style={styles.titleTxt}>{title}</TextView>
+                    {
+                        onNextPress && <View
+                            style = {{
+                                marginLeft: 50
+                            }}
+                        >
+                        <TouchableOpacity
+                            style = {{
+                                height: 40,
+                                width: 80,
+                                borderRadius: 25,
+                                backgroundColor: color.btnPrimary_color,
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onPress = {()=>{onNextPress && onNextPress()}}
+                        >                         
+                            <Text
+                                style = {{
+                                    fontSize: 20,
+                                    color: 'white',
+                                    fontWeight: 'bold'    
+                                }}
+                            >
+                                Skip
+                                </Text>
+                        </TouchableOpacity>
+                    </View>
+                    }
                 </View>
 
             </Header>

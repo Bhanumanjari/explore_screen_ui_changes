@@ -270,13 +270,13 @@ const HomeTab = (props) => {
       >
         
         {!props.isTrendingLoading ? (
-          <TextView style={styles.listtitle}>TRENDING</TextView>
+          <TextView style={styles.listtitle}>LATEST</TextView>
         ) : (
           <TextLoader />
         )}
-        {props.isTrendingLoading ? <TrendingLoader /> : <FlatList
+        {props.isForMeLoading ? <TrendingLoader /> : <FlatList
           horizontal={true}
-          data={props.trendingVideo}
+          data={props.forMeVideo}
           contentContainerStyle={{
             flex: 0,
             paddingHorizontal: PixcelWidth(15),
@@ -294,14 +294,14 @@ const HomeTab = (props) => {
           }}
         />}
         {!props.isForMeLoading ? (
-          <TextView style={styles.listtitle}>LATEST</TextView>
+          <TextView style={styles.listtitle}>TRENDING</TextView>
         ) : (
           <TextLoader />
         )}
-        {props.isForMeLoading ? <ForMeLoader /> :
+        {props.isTrendingLoading ? <ForMeLoader /> :
           <FlatList
             horizontal={true}
-            data={props.forMeVideo}
+            data={props.trendingVideo}
             contentContainerStyle={{
               flex: 0,
               paddingHorizontal: PixcelWidth(15),

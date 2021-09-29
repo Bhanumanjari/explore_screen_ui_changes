@@ -18,6 +18,9 @@ import { validatePhoneNumber } from '../../../Utils/globalFun';
 import CountryCodeModal from '../../../Component/CountryCodeModal';
 import { EULA, PRIVACY_POLICY, TERMS_CONDITION } from '../../../Utils/constant';
 import CountryPicker from 'react-native-country-picker-modal'
+import BackButton from '../../../Component/BackButton';
+import { font } from 'app/Theme';
+//import {PixcelWidth} from '../../Utils';
 
 class SignupMoreDetails extends Component {
   state = {
@@ -32,6 +35,32 @@ class SignupMoreDetails extends Component {
     isConfirmPasswordVisible: false,
     showCountryCodeModal: false
   };
+
+  //componentDidMount = () => {
+  //  this.setHeader() ;
+  //}
+
+  setHeader = () => {
+    this.props.navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      title: "More Detail",
+      headerTitleStyle: {
+        fontFamily: font.MontserratBold,
+        fontSize: 22,
+        color: 'white',
+        alignItems: 'flex-start',  
+        justifyContent: 'flex-start',
+        fontWeight: 'bold',
+        transform : [{
+          translateX: -90
+        }] ,
+
+      },
+      headerLeft: ()=> <BackButton/>
+    })
+  }
+
 
   signUp = () => {
     const { phoneNumber } = this.state;
@@ -105,12 +134,15 @@ class SignupMoreDetails extends Component {
   render() {
     return (
       <KeyboardAwareScrollView style={styles.container}>
-        <MainHeader
+        {
+          <MainHeader
           title={'More Detail'}
           onBackPress={() => {
             this.props.navigation.goBack();
           }}
         />
+        
+        }
         <View style={styles.mainLayout}>
           <View style={{ flexDirection: 'row' }}>
             <View
