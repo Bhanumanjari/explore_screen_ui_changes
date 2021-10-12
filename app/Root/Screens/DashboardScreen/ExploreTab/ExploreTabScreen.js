@@ -292,6 +292,8 @@ const ExploreList = ({ item, index, onPressItem = () => { } }) => {
 const ExploreListItem = ({ item, index, scale = false, onPressItem }) => {
     const itemWidth = ((wp('100%') - 24) / (3 / (scale ? 2 : 1))) - 10
     const itemHeight = scale ? hp('44%') + 20 : hp('22%')
+    let guestTry =item.addedBy.username ;
+    var res = guestTry.substring(0, 5);
     return (
         <Pressable
             onPress={() => {
@@ -303,7 +305,19 @@ const ExploreListItem = ({ item, index, scale = false, onPressItem }) => {
                 width: itemWidth,
                 height: itemHeight,
             }]}>
-
+                 {(() => {
+              if (res==="USER_"){
+                  return (
+                    <TextView style={styles.userNameTxt} >{"GUEST"}</TextView>
+                  )
+              }else{
+                  return(
+                  <TextView style={styles.userNameTxt} >{`@${item.addedBy?.username}`}</TextView>
+                  )
+              }
+              
+              return null;
+            })()}
             </FastImage>
         </Pressable>
     )
@@ -385,6 +399,14 @@ const styles = StyleSheet.create({
         marginHorizontal: PixcelWidth(20),
         fontSize: PixcelWidth(15),
         color: color.secondary,
+    },
+    userNameTxt:{
+        position:"absolute",
+        bottom:10,      
+        fontFamily: font.MontserratSemibold,
+        color: color.txt_white,
+        marginLeft:15,
+        
     },
 
 })
